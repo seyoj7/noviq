@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
       state.userId = state.wallet.user_id;
       updateWalletUI();
       loadHistoryFromStorage();
-      
+
       apiFetch("/wallet", {
         method: "POST",
         body: JSON.stringify({ user_id: state.userId }),
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
         state.wallet = w;
         localStorage.setItem("noviq_wallet", JSON.stringify(w));
       }).catch(e => console.error("Silent wallet refresh failed", e));
-    } catch(e) {
+    } catch (e) {
       console.error(e);
     }
   }
@@ -127,6 +127,16 @@ async function fetchAgents() {
     renderAgentCards();
   } catch (err) {
     console.error("Failed to fetch agents:", err);
+    dom.agentsGrid.innerHTML = `
+      <div class="agents-error">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <h3>Server Is Offline</h3>
+      </div>
+    `;
     showToast(
       "Backend not reachable. Ensure FastAPI is running.",
       "error"
@@ -199,9 +209,6 @@ function handleInputChange() {
   dom.charCount.textContent = `${len} chars`;
   dom.btnRunAgent.disabled = len === 0 || state.isProcessing;
 }
-
-
-
 
 
 async function handleRunAgent() {
@@ -373,9 +380,6 @@ function setProcessing(active) {
 }
 
 
-
-
-
 async function handleConnectWallet() {
   if (typeof window.ethereum === 'undefined') {
     showToast("Please install MetaMask (or an EVM wallet) to connect.", "error");
@@ -495,16 +499,13 @@ function handleDisconnectWallet() {
   closeWalletPanel();
   state.wallet = null;
   localStorage.removeItem("noviq_wallet");
-  
+
   dom.navbarWallet.innerHTML = `<button class="btn btn-primary btn-sm" id="btn-connect-wallet">Connect Wallet</button>`;
   dom.btnConnect = document.getElementById("btn-connect-wallet");
   dom.btnConnect.addEventListener("click", handleConnectWallet);
-  
+
   showToast("Wallet disconnected", "info");
 }
-
-
-
 
 
 function addHistoryEntry(entry) {
@@ -572,9 +573,6 @@ function loadHistoryFromStorage() {
 }
 
 
-
-
-
 function showToast(message, type = "info") {
   const toast = document.createElement("div");
   toast.className = `toast toast-${type}`;
@@ -587,9 +585,6 @@ function showToast(message, type = "info") {
     setTimeout(() => toast.remove(), 300);
   }, 4000);
 }
-
-
-
 
 
 function escapeHtml(str) {
