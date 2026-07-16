@@ -26,7 +26,7 @@
   --space-2xl: 4rem;
   --space-3xl: 6rem;
   --space-4xl: 8rem;
-  --max-width: 1100px;
+  --max-width: 1280px;
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -85,7 +85,7 @@ h4 {
 }
 
 .section {
-  padding: var(--space-4xl) var(--space-md);
+  padding: var(--space-4xl) var(--space-xl);
   max-width: var(--max-width);
   margin: 0 auto;
 }
@@ -218,10 +218,9 @@ h4 {
   z-index: 100;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--space-md) var(--space-xl);
-  max-width: var(--max-width);
-  margin: 0 auto;
+  gap: var(--space-xl);
+  padding: 12px var(--space-xl);
+  width: 100%;
   background: rgba(10, 10, 10, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -232,6 +231,7 @@ h4 {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-right: auto;
 }
 
 .brand-icon {
@@ -294,13 +294,13 @@ h4 {
 
 
 .hero {
-  padding: var(--space-4xl) var(--space-md) var(--space-2xl);
+  padding: var(--space-3xl) var(--space-xl) var(--space-xl);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  min-height: 80vh;
+  min-height: calc(100vh - 68px);
 }
 
 .hero-badge {
@@ -393,7 +393,7 @@ h4 {
 
 .agents-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-lg);
 }
 
@@ -452,11 +452,15 @@ h4 {
 }
 
 
+.section-workspace {
+  max-width: 1440px;
+}
+
 .workspace-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-lg);
-  min-height: 500px;
+  min-height: 520px;
 }
 
 .workspace-input-panel,
@@ -559,9 +563,9 @@ h4 {
   position: absolute;
   top: 76px;
   right: var(--space-xl);
-  width: 350px;
+  width: 280px;
   max-width: calc(100vw - var(--space-xl) * 2);
-  padding: var(--space-lg) var(--space-xl);
+  padding: var(--space-md);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-light);
   background: var(--bg-secondary);
@@ -581,23 +585,29 @@ h4 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-md);
-  padding-bottom: var(--space-sm);
+  margin-bottom: 8px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--border-light);
 }
 
 .wallet-panel-header h3 {
-  font-size: 1rem;
+  font-size: 0.75rem;
+}
+
+.wallet-panel-header .btn {
+  padding: 2px 6px;
+  font-size: 0.7rem;
 }
 
 .wallet-balance-display {
-  text-align: center;
-  padding: var(--space-md) 0;
-  margin-bottom: var(--space-md);
+  text-align: left;
+  padding-top: 10px;
+  padding-bottom: 8px;
+  margin-bottom: 5px;
 }
 
 .wallet-balance-amount {
-  font-size: 2.5rem;
+  font-size: 1.75rem;
   font-weight: 800;
   font-family: var(--font-mono);
   color: var(--text-primary);
@@ -605,7 +615,7 @@ h4 {
 }
 
 .wallet-balance-currency {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
   margin-top: var(--space-xs);
 }
@@ -614,7 +624,7 @@ h4 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-md) 0;
+  padding: var(--space-sm) 0;
   border-bottom: 1px solid var(--border-light);
 }
 
@@ -623,7 +633,7 @@ h4 {
 }
 
 .wallet-detail-label {
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -631,7 +641,7 @@ h4 {
 
 .wallet-detail-value {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: var(--text-secondary);
 }
 
@@ -675,13 +685,12 @@ h4 {
 
 .footer {
   border-top: 1px solid var(--border-light);
-  padding: var(--space-2xl) var(--space-md);
+  padding: var(--space-sm) var(--space-md);
   background: var(--bg-primary);
 }
 
 .footer-content {
-  max-width: var(--max-width);
-  margin: 0 auto;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -839,6 +848,10 @@ h4 {
 
   .features-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .agents-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
 
   .footer-content {

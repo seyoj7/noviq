@@ -35,7 +35,7 @@ const dom = {
   walletPanel: $("#wallet-panel"),
   walletBackdrop: $("#wallet-backdrop"),
   walletPanelBody: $("#wallet-panel-body"),
-  btnCloseWallet: $("#btn-close-wallet"),
+  btnDisconnectWallet: $("#btn-disconnect-wallet"),
 
   historySection: $("#history"),
   historyTbody: $("#history-tbody"),
@@ -46,10 +46,29 @@ const dom = {
 
 
 document.addEventListener("DOMContentLoaded", () => {
+  const savedWallet = localStorage.getItem("noviq_wallet");
+  if (savedWallet) {
+    try {
+      state.wallet = JSON.parse(savedWallet);
+      state.userId = state.wallet.user_id;
+      updateWalletUI();
+      loadHistoryFromStorage();
+      
+      apiFetch("/wallet", {
+        method: "POST",
+        body: JSON.stringify({ user_id: state.userId }),
+      }).then(r => r.json()).then(w => {
+        state.wallet = w;
+        localStorage.setItem("noviq_wallet", JSON.stringify(w));
+      }).catch(e => console.error("Silent wallet refresh failed", e));
+    } catch(e) {
+      console.error(e);
+    }
+  }
 
   bindEvents();
   fetchAgents();
-  renderHistory();
+  if (!savedWallet) renderHistory();
   initScrollEffects();
 });
 
@@ -67,7 +86,7 @@ function bindEvents() {
   dom.btnRunAgent.addEventListener("click", handleRunAgent);
 
 
-  dom.btnCloseWallet.addEventListener("click", closeWalletPanel);
+  dom.btnDisconnectWallet.addEventListener("click", handleDisconnectWallet);
   dom.walletBackdrop.addEventListener("click", closeWalletPanel);
 
 
@@ -382,6 +401,7 @@ async function handleConnectWallet() {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
     state.wallet = await resp.json();
+    localStorage.setItem("noviq_wallet", JSON.stringify(state.wallet));
     updateWalletUI();
     loadHistoryFromStorage();
     showToast("Wallet connected!", "success");
@@ -426,6 +446,16 @@ function updateWalletUI() {
 function openWalletPanel() {
   if (!state.wallet) return;
 
+  const copyableRow = (val, displayVal, lbl) => `
+    <div class="wallet-detail-value-wrapper" style="display: flex; align-items: center; cursor: pointer; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="navigator.clipboard.writeText('${val}'); showToast('${lbl} copied!', 'success');">
+      <span class="wallet-detail-value" title="${val}">${displayVal}</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px;">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+    </div>
+  `;
+
   dom.walletPanelBody.innerHTML = `
     <div class="wallet-balance-display">
       <div class="wallet-balance-amount">$${state.wallet.usdc_balance.toFixed(2)}</div>
@@ -433,25 +463,22 @@ function openWalletPanel() {
     </div>
     <div class="wallet-detail">
       <span class="wallet-detail-label">Wallet ID</span>
-      <span class="wallet-detail-value" title="${state.wallet.wallet_id}">${truncateAddress(state.wallet.wallet_id)}</span>
+      ${copyableRow(state.wallet.wallet_id, truncateAddress(state.wallet.wallet_id), 'Wallet ID')}
     </div>
     <div class="wallet-detail">
       <span class="wallet-detail-label">Address</span>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span class="wallet-detail-value" title="${state.wallet.address}">${truncateAddress(state.wallet.address)}</span>
-        <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('${state.wallet.address}'); showToast('Address copied!', 'success');" style="padding: 2px 6px; font-size: 0.65rem;">Copy</button>
-      </div>
+      ${copyableRow(state.wallet.address, truncateAddress(state.wallet.address), 'Address')}
     </div>
     <div class="wallet-detail">
       <span class="wallet-detail-label">EVM Address (User ID)</span>
-      <span class="wallet-detail-value" title="${state.wallet.user_id}">${truncateAddress(state.wallet.user_id)}</span>
+      ${copyableRow(state.wallet.user_id, truncateAddress(state.wallet.user_id), 'EVM Address')}
     </div>
     <div class="wallet-detail">
       <span class="wallet-detail-label">Network</span>
-      <span class="wallet-detail-value">Arc Testnet</span>
+      ${copyableRow('Arc Testnet', 'Arc Testnet', 'Network')}
     </div>
-    <div style="margin-top: var(--space-md); text-align: center;">
-      <p style="font-size: 0.8rem; color: var(--text-tertiary); line-height: 1.6;">
+    <div style="margin-top: var(--space-sm); text-align: center;">
+      <p style="font-size: 0.65rem; color: var(--text-tertiary); line-height: 1.4;">
         This is a developer-controlled Circle wallet created for you automatically.
       </p>
     </div>
@@ -462,6 +489,18 @@ function openWalletPanel() {
 
 function closeWalletPanel() {
   dom.walletPanel.classList.remove("open");
+}
+
+function handleDisconnectWallet() {
+  closeWalletPanel();
+  state.wallet = null;
+  localStorage.removeItem("noviq_wallet");
+  
+  dom.navbarWallet.innerHTML = `<button class="btn btn-primary btn-sm" id="btn-connect-wallet">Connect Wallet</button>`;
+  dom.btnConnect = document.getElementById("btn-connect-wallet");
+  dom.btnConnect.addEventListener("click", handleConnectWallet);
+  
+  showToast("Wallet disconnected", "info");
 }
 
 

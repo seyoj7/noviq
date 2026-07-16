@@ -28,7 +28,7 @@
     <div style="display: flex; align-items: center; gap: 12px;">
       <a href="https://faucet.circle.com/" target="_blank" class="btn btn-secondary btn-sm" id="btn-faucet"
         title="Get testnet USDC" style="padding: 6px 16px; font-weight: 600;">
-        Fund Faucet ↗
+        Faucet ↗
       </a>
       <div class="navbar-wallet" id="navbar-wallet">
         <button class="btn btn-primary btn-sm" id="btn-connect-wallet">Connect Wallet</button>
@@ -39,7 +39,6 @@
 
   <header id="hero" class="hero">
     <div class="hero-badge">
-      <span class="pulse-dot"></span>
       pay-per-request AI agents
     </div>
     <h1 class="hero-title">
@@ -172,7 +171,7 @@
         </tbody>
       </table>
       <div class="history-empty" id="history-empty">
-        <p>No transactions yet. Run an agent to see your history here.</p>
+        <p>No transactions yet.</p>
       </div>
     </div>
   </section>
@@ -195,7 +194,13 @@
     <div class="wallet-panel-content glass-panel">
       <div class="wallet-panel-header">
         <h3>Your Wallet</h3>
-        <button class="btn btn-ghost btn-sm" id="btn-close-wallet">✕</button>
+        <button class="btn btn-ghost btn-sm" id="btn-disconnect-wallet" title="Disconnect Wallet" style="color: #ff4d4f; padding: 2px 6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </button>
       </div>
       <div class="wallet-panel-body" id="wallet-panel-body">
       </div>
@@ -206,4 +211,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>
