@@ -1,3 +1,4 @@
 /.env
+/backend/__pycache__
 /agents.md
 /skills.md
