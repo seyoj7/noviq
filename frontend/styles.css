@@ -251,6 +251,13 @@ h4 {
   align-items: center;
   gap: 8px;
   margin-right: auto;
+  cursor: pointer;
+}
+
+.brand-logo {
+  margin-top: 6px;
+  height: 28px;
+  width: auto;
 }
 
 .brand-icon {
@@ -748,21 +755,16 @@ h4 {
 
 .footer-content {
   width: 100%;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
-}
-
-.footer-brand {
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: var(--text-primary);
-  text-transform: lowercase;
 }
 
 .footer-links {
   display: flex;
   gap: var(--space-xl);
+  grid-column: 3;
+  justify-self: end;
 }
 
 .footer-links a {
@@ -778,6 +780,9 @@ h4 {
   font-family: var(--font-mono);
   font-size: 0.8rem;
   color: var(--text-tertiary);
+  grid-column: 2;
+  justify-self: center;
+  text-align: center;
 }
 
 
@@ -912,7 +917,9 @@ h4 {
   }
 
   .footer-content {
+    display: flex;
     flex-direction: column;
+    align-items: center;
     gap: var(--space-md);
     text-align: center;
   }
