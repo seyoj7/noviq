@@ -48,10 +48,9 @@ async def _call_nvidia(system_prompt: str, user_message: str) -> str:
 # Agent functions
 async def summarize(input_text: str) -> str:
     system_prompt = (
-        "You are a concise summarization assistant. "
-        "Given any text, extract the 3 most important points and return them as "
-        "a numbered bullet list (1., 2., 3.). Each bullet should be one sentence. "
-        "Do not add any preamble or conclusion — only the 3 bullets."
+        "You are a summarization assistant. "
+        "Given any text, provide a comprehensive summary paragraph. "
+        "Do not add any preamble or conclusion."
     )
     return await _call_llm(system_prompt, input_text)
 
@@ -106,7 +105,7 @@ AGENT_REGISTRY: dict[str, AgentDefinition] = {
     "summarizer": AgentDefinition(
         agent_id="summarizer",
         name="📝 Summarizer",
-        description="Distills any text into 3 clear bullet points instantly.",
+        description="Distills any text into a concise summary paragraph instantly.",
         price_usdc=AGENT_PRICES["summarizer"],
         fn=summarize,
     ),

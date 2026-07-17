@@ -524,7 +524,7 @@ h4 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-lg);
-  min-height: 520px;
+  height: 600px;
 }
 
 .workspace-input-panel,
@@ -593,6 +593,12 @@ h4 {
   font-size: 1rem;
   white-space: pre-wrap;
   color: var(--text-primary);
+}
+
+.agent-output pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
 }
 
 .output-placeholder {
