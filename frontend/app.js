@@ -465,12 +465,12 @@ function openWalletPanel() {
       <div class="wallet-balance-currency">USDC on Arc Testnet</div>
     </div>
     <div class="wallet-detail">
-      <span class="wallet-detail-label">Wallet ID</span>
-      ${copyableRow(state.wallet.wallet_id, truncateAddress(state.wallet.wallet_id), 'Wallet ID')}
-    </div>
-    <div class="wallet-detail">
       <span class="wallet-detail-label">Address</span>
       ${copyableRow(state.wallet.address, truncateAddress(state.wallet.address), 'Address')}
+    </div>
+    <div class="wallet-detail">
+      <span class="wallet-detail-label">Wallet ID</span>
+      ${copyableRow(state.wallet.wallet_id, truncateAddress(state.wallet.wallet_id), 'Wallet ID')}
     </div>
     <div class="wallet-detail">
       <span class="wallet-detail-label">EVM Address</span>
@@ -478,7 +478,9 @@ function openWalletPanel() {
     </div>
     <div class="wallet-detail">
       <span class="wallet-detail-label">Network</span>
-      ${copyableRow('Arc Testnet', 'Arc Testnet', 'Network')}
+      <div class="wallet-detail-value-wrapper" style="opacity: 0.8;">
+        <span class="wallet-detail-value" title="Arc Testnet">Arc Testnet</span>
+      </div>
     </div>
     <div style="margin-top: var(--space-sm); text-align: center;">
       <p style="font-size: 0.65rem; color: var(--text-tertiary); line-height: 1.4;">
