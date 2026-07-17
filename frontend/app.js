@@ -336,7 +336,7 @@ function handleAgentResult(result) {
     agentId: state.selectedAgent.agent_id,
     cost: state.selectedAgent.price_usdc,
     status: "verified",
-    paymentRef: result.payment_ref || "—",
+    txHash: result.payment_ref || "—",
     time: new Date().toISOString(),
   });
 
@@ -533,15 +533,37 @@ function renderHistory() {
 
   dom.historyTbody.innerHTML = state.history
     .map((entry) => {
-      const statusLabel = "✅ Verified";
-      const time = new Date(entry.time).toLocaleTimeString();
+      let statusLabel = "Done";
+      let statusClass = "done";
+      let statusIcon = "✅";
+      if (entry.status === "failed") {
+        statusLabel = "Failed";
+        statusClass = "failed";
+        statusIcon = "❌";
+      }
+
+      const time = new Date(entry.time).toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+        timeZone: 'UTC'
+      });
 
       return `
         <tr>
           <td>${escapeHtml(entry.agent)}</td>
           <td style="font-family:var(--font-mono);color:var(--success);">$${entry.cost.toFixed(2)}</td>
-          <td><span class="status-badge verified">${statusLabel}</span></td>
-          <td><span class="ref-mono">${truncateRef(entry.paymentRef)}</span></td>
+          <td><span class="status-badge ${statusClass}">${statusIcon} ${statusLabel}</span></td>
+          <td>
+            <div style="display: inline-flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="navigator.clipboard.writeText('${entry.txHash || entry.paymentRef}'); showToast('Tx Hash copied!', 'success');" title="Copy to clipboard">
+              <span class="ref-mono">${truncateRef(entry.txHash || entry.paymentRef)}</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px;">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </div>
+          </td>
           <td style="color:var(--text-tertiary);">${time}</td>
         </tr>
       `;
@@ -605,8 +627,12 @@ function truncateAddress(addr) {
 }
 
 function truncateRef(ref) {
-  if (!ref || ref.length < 20) return ref;
-  return ref.slice(0, 16) + "…";
+  if (!ref || ref.length < 10) return ref;
+  if (ref.startsWith("0x")) {
+    // Keep '0x' plus the first 4 hex chars, and the last 4 chars
+    return ref.slice(0, 6) + "..." + ref.slice(-4);
+  }
+  return ref.slice(0, 4) + "..." + ref.slice(-4);
 }
 
 function sleep(ms) {

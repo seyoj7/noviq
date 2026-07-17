@@ -100,4 +100,23 @@ async def execute_payment(user_id: str, expected_amount_usdc: float) -> str:
             logger.error("Payment execution failed: %s", err_msg)
             raise ValueError(f"Transaction failed: {err_msg}")
             
-        return resp.json()["data"]["id"]
+        tx_id = resp.json()["data"]["id"]
+
+        import asyncio
+        for _ in range(15):
+            await asyncio.sleep(1)
+            try:
+                poll_resp = await client.get(
+                    f"https://api.circle.com/v1/w3s/transactions/{tx_id}",
+                    headers=headers
+                )
+                poll_resp.raise_for_status()
+                data = poll_resp.json().get("data", {}).get("transaction", {})
+                if data.get("txHash"):
+                    return data["txHash"]
+                if data.get("state") == "FAILED":
+                    raise ValueError("Transaction failed on-chain")
+            except httpx.HTTPStatusError:
+                pass
+                
+        return tx_id

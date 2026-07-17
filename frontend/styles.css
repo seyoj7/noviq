@@ -725,7 +725,7 @@ h4 {
 }
 
 .history-table th {
-  text-align: left;
+  text-align: center;
   padding: var(--space-md);
   color: var(--text-tertiary);
   font-weight: 500;
@@ -736,6 +736,7 @@ h4 {
 }
 
 .history-table td {
+  text-align: center;
   padding: var(--space-md);
   border-bottom: 1px solid var(--border-light);
   color: var(--text-secondary);
@@ -747,8 +748,6 @@ h4 {
   color: var(--text-tertiary);
   font-style: italic;
 }
-
-
 
 
 .footer {
