@@ -10,6 +10,7 @@ from backend.config import (
     USDC_ADDRESS,
 )
 from backend.models import AgentInfo, PaymentChallenge
+from backend.wallet import _get_entity_secret_ciphertext, _WALLET_STORE, get_or_create_wallet
 
 logger = logging.getLogger(__name__)
 
@@ -55,3 +56,48 @@ async def verify_authorization(auth_header: str, expected_amount_usdc: float) ->
     except (json.JSONDecodeError, ValueError) as exc:
         logger.error("Failed to parse authorization header: %s", exc)
         return False, "Invalid authorization format"
+
+
+async def execute_payment(user_id: str, expected_amount_usdc: float) -> str:
+    """Executes a real on-chain transaction using the custodial Circle Developer Wallet."""
+    wallet_id = _WALLET_STORE.get(user_id)
+    if not wallet_id:
+        wallet_info = await get_or_create_wallet(user_id)
+        wallet_id = wallet_info.wallet_id
+        
+    ciphertext = await _get_entity_secret_ciphertext()
+    atomic_amount = _usdc_to_atomic(expected_amount_usdc)
+    
+    headers = {
+        "Authorization": f"Bearer {CIRCLE_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        resp = await client.post(
+            f"https://api.circle.com/v1/w3s/developer/transactions/contractExecution",
+            headers=headers,
+            json={
+                "idempotencyKey": str(uuid.uuid4()),
+                "entitySecretCiphertext": ciphertext,
+                "abiFunctionSignature": "transfer(address,uint256)",
+                "abiParameters": [
+                    SELLER_WALLET_ADDRESS,
+                    str(atomic_amount)
+                ],
+                "contractAddress": USDC_ADDRESS,
+                "feeLevel": "MEDIUM",
+                "walletId": wallet_id
+            }
+        )
+        try:
+            resp.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            try:
+                err_msg = exc.response.json().get("message", exc.response.text)
+            except Exception:
+                err_msg = exc.response.text
+            logger.error("Payment execution failed: %s", err_msg)
+            raise ValueError(f"Transaction failed: {err_msg}")
+            
+        return resp.json()["data"]["id"]

@@ -156,6 +156,22 @@ async def run_agent(
             status_code=402,
             detail=f"Payment authorization invalid or insufficient: {payment_ref}",
         )
+        
+    # Execute the actual on-chain transfer
+    if not body.user_id:
+        raise HTTPException(
+            status_code=400, 
+            detail="Wallet not connected. Cannot execute payment without user_id."
+        )
+        
+    try:
+        payment_tx_id = await payment.execute_payment(body.user_id, agent_def.price_usdc)
+        payment_ref = payment_tx_id
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=402,
+            detail=str(exc),
+        )
 
     # Step 3: Payment verified → run the agent
     try:

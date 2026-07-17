@@ -216,6 +216,11 @@ async function handleRunAgent() {
   const inputText = dom.agentInput.value.trim();
   if (!inputText) return;
 
+  if (!state.userId) {
+    showToast("Please connect your wallet first to run this agent.", "error");
+    return;
+  }
+
   setProcessing(true);
 
   try {

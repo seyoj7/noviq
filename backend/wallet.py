@@ -40,10 +40,10 @@ async def create_wallet(user_id: str) -> WalletInfo:
             f"{CIRCLE_API_BASE}/developer/wallets",
             headers=_headers(),
             json={
-                "idempotencyKey": str(uuid.uuid5(uuid.NAMESPACE_DNS, f"noviq-{user_id}")),
+                "idempotencyKey": str(uuid.uuid5(uuid.NAMESPACE_DNS, f"noviq-arc-{user_id}")),
                 "entitySecretCiphertext": ciphertext,
                 "walletSetId": wallet_set_id,
-                "blockchains": ["ETH-SEPOLIA"],
+                "blockchains": ["ARC-TESTNET"],
                 "count": 1,
                 "metadata": [{"name": f"user-{user_id}"[:50], "refId": user_id}],
             },
@@ -148,7 +148,7 @@ async def get_or_create_wallet(user_id: str) -> WalletInfo:
     # This guarantees the address remains the same even if the backend is restarted and _WALLET_STORE is cleared.
     async with httpx.AsyncClient(timeout=30.0) as client:
         resp = await client.get(
-            f"{CIRCLE_API_BASE}/wallets?refId={user_id}",
+            f"{CIRCLE_API_BASE}/wallets?refId={user_id}&blockchain=ARC-TESTNET",
             headers=_headers()
         )
         if resp.status_code == 200:
