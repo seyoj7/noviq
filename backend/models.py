@@ -10,7 +10,6 @@ class AgentInfo(BaseModel):
     name: str
     description: str
     price_usdc: float = Field(..., description="Cost per request in USDC")
-    example_input: str
 
 
 # /run-agent

@@ -160,7 +160,6 @@ function renderAgentCards() {
       </div>
       <p class="agent-card-desc">${escapeHtml(agent.description)}</p>
       <div class="agent-card-footer">
-        <span class="agent-card-example">${escapeHtml(agent.example_input)}</span>
         <span class="agent-card-cta">Try it →</span>
       </div>
     `;
@@ -179,7 +178,7 @@ function selectAgent(agent) {
 
 
   dom.agentInput.value = "";
-  dom.agentInput.placeholder = agent.example_input || "Type your input here...";
+  dom.agentInput.placeholder = "Type your input here...";
   dom.charCount.textContent = "0 chars";
   dom.btnRunAgent.disabled = true;
   dom.paymentStatus.className = "payment-status";
@@ -474,7 +473,7 @@ function openWalletPanel() {
       ${copyableRow(state.wallet.address, truncateAddress(state.wallet.address), 'Address')}
     </div>
     <div class="wallet-detail">
-      <span class="wallet-detail-label">EVM Address (User ID)</span>
+      <span class="wallet-detail-label">EVM Address</span>
       ${copyableRow(state.wallet.user_id, truncateAddress(state.wallet.user_id), 'EVM Address')}
     </div>
     <div class="wallet-detail">

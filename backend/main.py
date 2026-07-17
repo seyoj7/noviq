@@ -85,7 +85,6 @@ async def list_agents() -> list[AgentInfo]:
             name=a.name,
             description=a.description,
             price_usdc=a.price_usdc,
-            example_input=a.example_input,
         )
         for a in agent_module.AGENT_REGISTRY.values()
     ]

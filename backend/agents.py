@@ -94,14 +94,12 @@ class AgentDefinition:
         description: str,
         price_usdc: float,
         fn: AgentFn,
-        example_input: str,
     ) -> None:
         self.agent_id = agent_id
         self.name = name
         self.description = description
         self.price_usdc = price_usdc
         self.fn = fn
-        self.example_input = example_input
 
 
 AGENT_REGISTRY: dict[str, AgentDefinition] = {
@@ -111,7 +109,6 @@ AGENT_REGISTRY: dict[str, AgentDefinition] = {
         description="Distills any text into 3 clear bullet points instantly.",
         price_usdc=AGENT_PRICES["summarizer"],
         fn=summarize,
-        example_input="Paste an article, document, or any long text here...",
     ),
     "debugger": AgentDefinition(
         agent_id="debugger",
@@ -119,7 +116,6 @@ AGENT_REGISTRY: dict[str, AgentDefinition] = {
         description="Spots bugs in your code and returns a corrected version with explanations.",
         price_usdc=AGENT_PRICES["debugger"],
         fn=debug_code,
-        example_input="Paste your buggy code snippet here...",
     ),
     "researcher": AgentDefinition(
         agent_id="researcher",
@@ -127,7 +123,6 @@ AGENT_REGISTRY: dict[str, AgentDefinition] = {
         description="Answers any research question with a structured, factual breakdown.",
         price_usdc=AGENT_PRICES["researcher"],
         fn=research,
-        example_input="What is the difference between EIP-3009 and EIP-2612?",
     ),
 }
 
