@@ -53,6 +53,13 @@ class ServiceDefinition:
         self.fn = fn
 
 SERVICE_REGISTRY: dict[str, ServiceDefinition] = {
+    "token_price": ServiceDefinition(
+        id="token_price",
+        name="📈 Token Price",
+        description="Gets the current price for a given cryptocurrency token.",
+        price_usdc=0.02,
+        fn=get_token_price,
+    ),
     "twitter_fetch": ServiceDefinition(
         id="twitter_fetch",
         name="🐦 Twitter Fetch",
@@ -66,13 +73,6 @@ SERVICE_REGISTRY: dict[str, ServiceDefinition] = {
         description="Fetches metadata and transcript for a YouTube video.",
         price_usdc=0.08,
         fn=fetch_youtube,
-    ),
-    "token_price": ServiceDefinition(
-        id="token_price",
-        name="📈 Token Price",
-        description="Gets the current price for a given cryptocurrency token.",
-        price_usdc=0.02,
-        fn=get_token_price,
     ),
 }
 

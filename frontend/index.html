@@ -71,15 +71,15 @@
       </a>
     </div>
     <div class="hero-tech-stack">
-      arc <span>·</span> circle <span>·</span> usdc <span>·</span> nanopayments
+      ARC <span>·</span> CIRCLE <span>·</span> USDC <span>·</span> NANOPAYMENTS
     </div>
   </header>
 
 
   <section id="how-it-works" class="section section-how">
     <div class="section-header">
-      <span class="eyebrow">how it works</span>
-      <h2 class="section-title">Three steps. No crypto expertise needed.</h2>
+      <span class="eyebrow">ARCHITECTURE</span>
+      <h2 class="section-title">How it works</h2>
       <p class="section-subtitle">A seamless journey from wallet connection to agent execution.</p>
     </div>
     <div class="features-grid">
@@ -118,10 +118,9 @@
   </section>
 
 
-  <section id="services" class="section section-services" style="padding-top: 0;">
+  <section id="services" class="section section-services">
     <div class="section-header">
-      <span class="eyebrow" style="color: var(--accent-secondary);">extensions</span>
-      <h2 class="section-title">Add a Service</h2>
+      <h2 class="section-title">Choose a Service</h2>
       <p class="section-subtitle">Data integrations and utilities. Priced per request in USDC.</p>
     </div>
     <div class="agents-grid" id="services-grid">
@@ -132,7 +131,8 @@
     </div>
   </section>
 
-  <section id="global-snippet" class="section section-snippet" style="padding-top: 0; max-width: 900px; margin: 0 auto 1rem auto;">
+  <section id="global-snippet" class="section section-snippet"
+    style="max-width: 900px; margin: 0 auto 1rem auto;">
     <div class="code-snippet-panel">
       <div class="code-snippet-header">
         <div class="code-snippet-dots">
@@ -143,7 +143,8 @@
         <div class="code-snippet-lang">Python API Integration</div>
       </div>
       <div class="code-snippet-body">
-        <button class="code-snippet-copy" onclick="navigator.clipboard.writeText('import requests\n\nurl = \&quot;http://localhost:8000/run-agent\&quot;\nheaders = {\&quot;Content-Type\&quot;: \&quot;application/json\&quot;}\ndata = {\n    \&quot;agent_id\&quot;: \&quot;summarizer\&quot;,\n    \&quot;input_text\&quot;: \&quot;your_input\&quot;\n}\n\n# Add your X-Payment-Authorization header here after 402 challenge\nresponse = requests.post(url, json=data, headers=headers)\nprint(response.json())'); showToast('Snippet copied!', 'success');">Copy</button>
+        <button class="code-snippet-copy"
+          onclick="navigator.clipboard.writeText('import requests\n\nurl = \&quot;http://localhost:8000/run-agent\&quot;\nheaders = {\&quot;Content-Type\&quot;: \&quot;application/json\&quot;}\ndata = {\n    \&quot;agent_id\&quot;: \&quot;summarizer\&quot;,\n    \&quot;input_text\&quot;: \&quot;your_input\&quot;\n}\n\n# Add your X-Payment-Authorization header here after 402 challenge\nresponse = requests.post(url, json=data, headers=headers)\nprint(response.json())'); showToast('Snippet copied!', 'success');">Copy</button>
         <pre><code><span style="color: #c678dd;">import </span><span style="color: #61afef;">requests</span>
 
 <span style="color: #e06c75;">url</span> = <span style="color: #98c379;">"http://localhost:8000/run-agent"</span>
@@ -222,7 +223,7 @@
   </section>
 
 
-  <section id="history" class="section section-history hidden" style="padding-top: 2rem;">
+  <section id="history" class="section section-history hidden">
     <div class="section-header">
       <span class="eyebrow">logs</span>
       <h2 class="section-title">Transaction History</h2>

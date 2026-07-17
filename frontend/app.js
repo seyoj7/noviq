@@ -164,7 +164,7 @@ function renderAgentCards() {
     card.innerHTML = `
       <div class="agent-card-header">
         <span class="agent-card-name">${escapeHtml(agent.name)}</span>
-        <span class="agent-card-price">$${agent.price_usdc.toFixed(2)} USDC</span>
+        <span class="agent-card-price" style="color: var(--accent-secondary); border-color: var(--accent-secondary);">$${agent.price_usdc.toFixed(2)} USDC</span>
       </div>
       <p class="agent-card-desc">${escapeHtml(agent.description)}</p>
       <div class="agent-card-footer">
@@ -202,29 +202,40 @@ function renderServiceCards() {
   dom.servicesGrid.innerHTML = "";
 
   state.services.forEach((service, index) => {
+    const isLocked = service.id === "twitter_fetch" || service.id === "youtube_fetch";
     const card = document.createElement("div");
     card.className = "agent-card service-card";
+    if (isLocked) {
+      card.style.opacity = "0.5";
+      card.style.cursor = "not-allowed";
+      card.style.pointerEvents = "none";
+    }
     card.style.animationDelay = `${index * 0.1}s`;
     card.dataset.serviceId = service.id;
 
+    const nameText = service.name;
+    const ctaText = isLocked ? "🔒 Coming Soon" : "Run Service →";
+
     card.innerHTML = `
       <div class="agent-card-header">
-        <span class="agent-card-name">${escapeHtml(service.name)}</span>
+        <span class="agent-card-name">${escapeHtml(nameText)}</span>
         <span class="agent-card-price" style="color: var(--accent-secondary); border-color: var(--accent-secondary);">$${service.price_usdc.toFixed(2)} USDC</span>
       </div>
       <p class="agent-card-desc">${escapeHtml(service.description)}</p>
       <div class="agent-card-footer">
-        <span class="agent-card-cta">Run Service →</span>
+        <span class="agent-card-cta">${ctaText}</span>
       </div>
     `;
 
-    card.addEventListener("click", () => selectAgent({
-      agent_id: service.id,
-      name: service.name,
-      description: service.description,
-      price_usdc: service.price_usdc,
-      is_service: true
-    }));
+    if (!isLocked) {
+      card.addEventListener("click", () => selectAgent({
+        agent_id: service.id,
+        name: service.name,
+        description: service.description,
+        price_usdc: service.price_usdc,
+        is_service: true
+      }));
+    }
     dom.servicesGrid.appendChild(card);
   });
 }

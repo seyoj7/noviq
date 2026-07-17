@@ -105,6 +105,27 @@ h4 {
   margin: 0 auto;
 }
 
+.section-how {
+  padding-bottom: 6rem;
+}
+
+.section-agents {
+  padding-top: 6rem;
+}
+
+.section-services {
+  padding-top: 0;
+}
+
+.section-snippet {
+  padding-top: 0;
+  padding-bottom: 2rem;
+}
+
+.section-history {
+  padding-top: 6rem;
+}
+
 .section-header {
   text-align: center;
   margin-bottom: var(--space-3xl);
@@ -234,7 +255,7 @@ h4 {
   z-index: 100;
   display: flex;
   align-items: center;
-  gap: var(--space-xl);
+  gap: 32px;
   padding: 12px var(--space-xl);
   width: 100%;
   background: rgba(10, 10, 10, 0.8);
@@ -272,7 +293,7 @@ h4 {
 
 .navbar-links {
   display: flex;
-  gap: var(--space-xl);
+  gap: 32px;
 }
 
 .navbar-links a {
@@ -288,13 +309,13 @@ h4 {
 .navbar-wallet {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: 8px;
 }
 
 .navbar-wallet-info {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: 8px;
 }
 
 .wallet-address-chip,
@@ -317,6 +338,7 @@ h4 {
 
 
 .hero {
+  margin-top: -25px;
   padding: var(--space-3xl) var(--space-xl) var(--space-xl);
   display: flex;
   flex-direction: column;
@@ -361,13 +383,13 @@ h4 {
   font-size: 1.25rem;
   color: var(--text-secondary);
   max-width: 650px;
-  margin-bottom: var(--space-2xl);
+  margin-bottom: var(--space-xl);
 }
 
 .hero-actions {
   display: flex;
-  gap: var(--space-md);
-  margin-bottom: var(--space-2xl);
+  gap: 16px;
+  margin-bottom: var(--space-xl);
 }
 
 .hero-tech-stack {
@@ -388,7 +410,7 @@ h4 {
 .features-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-xl);
+  gap: 32px;
 }
 
 .feature-card {
@@ -417,7 +439,7 @@ h4 {
 .agents-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-lg);
+  gap: 24px;
 }
 
 .agents-loading,
@@ -428,7 +450,7 @@ h4 {
   align-items: center;
   justify-content: center;
   padding: var(--space-3xl) 0;
-  gap: var(--space-md);
+  gap: 16px;
   text-align: center;
 }
 
@@ -520,7 +542,7 @@ h4 {
 .workspace-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-lg);
+  gap: 24px;
   height: 600px;
 }
 
@@ -540,8 +562,9 @@ h4 {
   font-size: 0.9rem;
   margin-bottom: var(--space-xl);
   grid-column: 1 / -1;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
+
 .code-snippet-header {
   background: #252526;
   padding: 10px 16px;
@@ -550,18 +573,29 @@ h4 {
   justify-content: space-between;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
+
 .code-snippet-dots {
   display: flex;
   gap: 8px;
 }
+
 .code-snippet-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
 }
-.code-snippet-dot.red { background: #ff5f56; }
-.code-snippet-dot.yellow { background: #ffbd2e; }
-.code-snippet-dot.green { background: #27c93f; }
+
+.code-snippet-dot.red {
+  background: #ff5f56;
+}
+
+.code-snippet-dot.yellow {
+  background: #ffbd2e;
+}
+
+.code-snippet-dot.green {
+  background: #27c93f;
+}
 
 .code-snippet-lang {
   color: #858585;
@@ -584,8 +618,8 @@ h4 {
   position: absolute;
   top: 12px;
   right: 12px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: white;
   padding: 4px 10px;
   border-radius: 4px;
@@ -595,12 +629,15 @@ h4 {
   font-family: var(--font-body);
   font-size: 0.8rem;
 }
+
 .code-snippet-body:hover .code-snippet-copy {
   opacity: 1;
 }
+
 .code-snippet-copy:hover {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
 }
+
 .code-snippet-copy:active {
   transform: scale(0.95);
 }
@@ -848,7 +885,7 @@ h4 {
 
 .footer-links {
   display: flex;
-  gap: var(--space-xl);
+  gap: 32px;
   grid-column: 3;
   justify-self: end;
 }
@@ -878,7 +915,7 @@ h4 {
   right: var(--space-xl);
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: 8px;
   z-index: 9999;
   pointer-events: none;
 }
@@ -895,21 +932,6 @@ h4 {
   pointer-events: auto;
 }
 
-.toast.toast-success {
-  border-left: 3px solid var(--success);
-}
-
-.toast.toast-error {
-  border-left: 3px solid var(--error);
-}
-
-.toast.toast-info {
-  border-left: 3px solid var(--info);
-}
-
-.toast.toast-warning {
-  border-left: 3px solid var(--warning);
-}
 
 .toast.removing {
   animation: toastOut 0.3s var(--transition-fast) forwards;
@@ -1006,7 +1028,7 @@ h4 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-md);
+    gap: 16px;
     text-align: center;
   }
 }
