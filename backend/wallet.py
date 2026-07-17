@@ -9,6 +9,7 @@ from Crypto.PublicKey import RSA
 import httpx
 
 from backend.config import (
+    ARC_TESTNET_RPC_URL,
     CIRCLE_API_BASE,
     CIRCLE_API_KEY,
     CIRCLE_ENTITY_SECRET,
@@ -51,7 +52,7 @@ async def create_wallet(user_id: str) -> WalletInfo:
         try:
             resp.raise_for_status()
         except httpx.HTTPStatusError as exc:
-            logger.error(f"Circle Wallet creation failed: {exc.response.text}")
+            logger.error("Circle Wallet creation failed: %s", exc.response.text)
             raise
         
         data = resp.json()
@@ -72,8 +73,6 @@ async def get_wallet_balance(wallet_id: str, user_id: str) -> WalletInfo:
     wallet_info = await _get_wallet_info(wallet_id, user_id)
 
     # Fetch balance directly from the Arc Testnet RPC
-    from backend.config import ARC_TESTNET_RPC_URL
-    
     data = "0x70a08231" + wallet_info.address.replace("0x", "").zfill(64)
     async with httpx.AsyncClient(timeout=30.0) as client:
         # Check ERC20 Balance

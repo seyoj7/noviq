@@ -1,10 +1,11 @@
 from __future__ import annotations
+import asyncio
+import json
 import logging
 import uuid
 import httpx
 from backend.config import (
     ARC_CHAIN_ID,
-    GATEWAY_API_BASE,
     CIRCLE_API_KEY,
     SELLER_WALLET_ADDRESS,
     USDC_ADDRESS,
@@ -39,7 +40,6 @@ def build_payment_challenge(agent_id: str, price_usdc: float, description: str) 
 # Verify an EIP-3009 signed authorization
 async def verify_authorization(auth_header: str, expected_amount_usdc: float) -> tuple[bool, str]:
 
-    import json
     try:
         data = json.loads(auth_header)
         auth_data = data.get("payload", {}).get("authorization", {})
@@ -102,7 +102,6 @@ async def execute_payment(user_id: str, expected_amount_usdc: float) -> str:
             
         tx_id = resp.json()["data"]["id"]
 
-        import asyncio
         for _ in range(15):
             await asyncio.sleep(1)
             try:

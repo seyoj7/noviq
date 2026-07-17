@@ -34,6 +34,26 @@ class RunAgentResponse(BaseModel):
     authorization_status: Literal["verified"] = "verified"
 
 
+# Service catalogue
+class ServiceInfo(BaseModel):
+
+    id: str
+    name: str
+    description: str
+    price_usdc: float = Field(..., description="Cost per request in USDC")
+
+
+# /run-service
+class RunServiceRequest(BaseModel):
+
+    service_id: str = Field(..., description="ID of the service to run")
+    input_data: str = Field(..., min_length=1, description="User-supplied data")
+    user_id: Optional[str] = Field(
+        None,
+        description="Caller's user ID — used to look up their Circle wallet for balance display",
+    )
+
+
 # 402 Payment Required
 class PaymentChallenge(BaseModel):
 

@@ -5,6 +5,7 @@ const state = {
   userId: null,
   wallet: null,
   agents: [],
+  services: [],
   selectedAgent: null,
   isProcessing: false,
   history: [],
@@ -21,7 +22,13 @@ const dom = {
   btnGetStarted: $("#btn-get-started"),
 
   agentsGrid: $("#agents-grid"),
+  servicesGrid: $("#services-grid"),
   workspace: $("#workspace"),
+  serviceWorkspace: $("#service-workspace"),
+  btnBackToServices: $("#btn-back-to-services"),
+  selectedServiceName: $("#selected-service-name"),
+  selectedServicePrice: $("#selected-service-price"),
+  serviceSnippetContainer: $("#service-snippet-container"),
   selectedAgentName: $("#selected-agent-name"),
   selectedAgentPrice: $("#selected-agent-price"),
   btnBackToAgents: $("#btn-back-to-agents"),
@@ -68,6 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   bindEvents();
   fetchAgents();
+  fetchServices();
   if (!savedWallet) renderHistory();
   initScrollEffects();
 });
@@ -82,8 +90,9 @@ function bindEvents() {
 
 
   dom.btnBackToAgents.addEventListener("click", handleBackToAgents);
+  dom.btnBackToServices.addEventListener("click", handleBackToServices);
   dom.agentInput.addEventListener("input", handleInputChange);
-  dom.btnRunAgent.addEventListener("click", handleRunAgent);
+  dom.btnRunAgent.addEventListener("click", handleRunAction);
 
 
   dom.btnDisconnectWallet.addEventListener("click", handleDisconnectWallet);
@@ -92,7 +101,7 @@ function bindEvents() {
 
   dom.agentInput.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-      handleRunAgent();
+      handleRunAction();
     }
   });
 }
@@ -169,32 +178,110 @@ function renderAgentCards() {
   });
 }
 
+async function fetchServices() {
+  try {
+    const resp = await apiFetch("/services");
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    state.services = await resp.json();
+    renderServiceCards();
+  } catch (err) {
+    console.error("Failed to fetch services:", err);
+    dom.servicesGrid.innerHTML = `
+      <div class="agents-error">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <h3>Services Unavailable</h3>
+      </div>
+    `;
+  }
+}
+
+function renderServiceCards() {
+  dom.servicesGrid.innerHTML = "";
+
+  state.services.forEach((service, index) => {
+    const card = document.createElement("div");
+    card.className = "agent-card service-card";
+    card.style.animationDelay = `${index * 0.1}s`;
+    card.dataset.serviceId = service.id;
+
+    card.innerHTML = `
+      <div class="agent-card-header">
+        <span class="agent-card-name">${escapeHtml(service.name)}</span>
+        <span class="agent-card-price" style="color: var(--accent-secondary); border-color: var(--accent-secondary);">$${service.price_usdc.toFixed(2)} USDC</span>
+      </div>
+      <p class="agent-card-desc">${escapeHtml(service.description)}</p>
+      <div class="agent-card-footer">
+        <span class="agent-card-cta">Run Service →</span>
+      </div>
+    `;
+
+    card.addEventListener("click", () => selectAgent({
+      agent_id: service.id,
+      name: service.name,
+      description: service.description,
+      price_usdc: service.price_usdc,
+      is_service: true
+    }));
+    dom.servicesGrid.appendChild(card);
+  });
+}
+
 function selectAgent(agent) {
   state.selectedAgent = agent;
 
+  if (agent.is_service) {
+    dom.selectedServiceName.textContent = agent.name;
+    dom.selectedServicePrice.textContent = `$${agent.price_usdc.toFixed(2)} USDC`;
 
-  dom.selectedAgentName.textContent = agent.name;
-  dom.selectedAgentPrice.textContent = `$${agent.price_usdc.toFixed(2)} USDC`;
+    dom.serviceSnippetContainer.innerHTML = `
+      <p style="margin-bottom: 12px; color: var(--text-primary);"># Python Integration Snippet</p>
+      <p style="color: #c678dd;">import</p> <p style="display:inline; color: #61afef;">requests</p><br><br>
+      <p>url = <span style="color: #98c379;">"${API_BASE}/run-service"</span></p>
+      <p>headers = {<span style="color: #98c379;">"Content-Type"</span>: <span style="color: #98c379;">"application/json"</span>}</p>
+      <p>data = {</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #98c379;">"service_id"</span>: <span style="color: #98c379;">"${agent.agent_id}"</span>,</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #98c379;">"input_data"</span>: <span style="color: #98c379;">"your_input"</span></p>
+      <p>}</p><br>
+      <p>response = requests.post(url, json=data, headers=headers)</p>
+      <p>print(response.json())</p>
+    `;
 
+    dom.workspace.classList.add("hidden");
+    dom.serviceWorkspace.classList.remove("hidden");
+    dom.serviceWorkspace.scrollIntoView({ behavior: "smooth", block: "start" });
+  } else {
+    dom.selectedAgentName.textContent = agent.name;
+    dom.selectedAgentPrice.textContent = `$${agent.price_usdc.toFixed(2)} USDC`;
 
-  dom.agentInput.value = "";
-  dom.agentInput.placeholder = "Type your input here...";
-  dom.charCount.textContent = "0 chars";
-  dom.btnRunAgent.disabled = true;
-  dom.paymentStatus.className = "payment-status";
-  dom.paymentStatus.textContent = "";
-  dom.agentOutput.innerHTML = `
-    <div class="output-placeholder">
-      <div class="output-placeholder-icon">◈</div>
-      <p>Enter your input and click <strong>Run Agent</strong> to see results.</p>
-      <p style="font-size:0.8rem;color:var(--text-tertiary);">Ctrl+Enter to run</p>
-    </div>
-  `;
+    dom.agentInput.value = "";
+    dom.agentInput.placeholder = "Type your input here...";
+    dom.charCount.textContent = "0 chars";
+    dom.btnRunAgent.disabled = true;
+    dom.paymentStatus.className = "payment-status";
+    dom.paymentStatus.textContent = "";
+    dom.agentOutput.innerHTML = `
+      <div class="output-placeholder">
+        <div class="output-placeholder-icon">◈</div>
+        <p>Enter your input and click <strong>Run Agent</strong> to see results.</p>
+        <p style="font-size:0.8rem;color:var(--text-tertiary);">Ctrl+Enter to run</p>
+      </div>
+    `;
 
+    dom.serviceWorkspace.classList.add("hidden");
+    dom.workspace.classList.remove("hidden");
+    dom.workspace.scrollIntoView({ behavior: "smooth", block: "start" });
+    dom.agentInput.focus();
+  }
+}
 
-  dom.workspace.classList.remove("hidden");
-  dom.workspace.scrollIntoView({ behavior: "smooth", block: "start" });
-  dom.agentInput.focus();
+function handleBackToServices() {
+  state.selectedAgent = null;
+  dom.serviceWorkspace.classList.add("hidden");
+  document.getElementById("services").scrollIntoView({ behavior: "smooth" });
 }
 
 function handleBackToAgents() {
@@ -209,6 +296,89 @@ function handleInputChange() {
   dom.btnRunAgent.disabled = len === 0 || state.isProcessing;
 }
 
+
+async function handleRunAction() {
+  if (state.selectedAgent?.is_service) {
+    await handleRunService();
+  } else {
+    await handleRunAgent();
+  }
+}
+
+async function runService(serviceId, inputData) {
+  const firstResp = await apiFetch("/run-service", {
+    method: "POST",
+    body: JSON.stringify({
+      service_id: serviceId,
+      input_data: inputData,
+      user_id: state.userId,
+    }),
+  });
+
+  if (firstResp.status === 402) {
+    const challenge = await firstResp.json();
+    showToast(
+      `Payment required: $${challenge.price_usdc} USDC — signing authorization...`,
+      "info"
+    );
+    const authSignature = await signPaymentAuthorization(challenge);
+
+    const retryResp = await apiFetch("/run-service", {
+      method: "POST",
+      headers: {
+        "X-Payment-Authorization": authSignature,
+      },
+      body: JSON.stringify({
+        service_id: serviceId,
+        input_data: inputData,
+        user_id: state.userId,
+      }),
+    });
+
+    if (!retryResp.ok) {
+      const errData = await retryResp.json().catch(() => ({}));
+      throw new Error(errData.detail || `Service run failed (${retryResp.status})`);
+    }
+    return await retryResp.json();
+  } else if (firstResp.ok) {
+    return await firstResp.json();
+  } else {
+    const errData = await firstResp.json().catch(() => ({}));
+    throw new Error(errData.detail || `Request failed (${firstResp.status})`);
+  }
+}
+
+async function handleRunService() {
+  if (!state.selectedAgent || state.isProcessing) return;
+
+  const inputText = dom.agentInput.value.trim();
+  if (!inputText) return;
+
+  if (!state.userId) {
+    showToast("Please connect your wallet first to run this service.", "error");
+    return;
+  }
+
+  setProcessing(true);
+
+  try {
+    const result = await runService(state.selectedAgent.agent_id, inputText);
+    handleAgentResult(result);
+  } catch (err) {
+    console.error("Run service error:", err);
+    showToast(err.message || "Something went wrong.", "error");
+    dom.paymentStatus.className = "payment-status error";
+    dom.paymentStatus.textContent = "⚠ Error";
+    dom.agentOutput.innerHTML = `
+      <div class="output-placeholder">
+        <div class="output-placeholder-icon" style="opacity:0.5;">⚠</div>
+        <p style="color:var(--error);">${escapeHtml(err.message)}</p>
+      </div>
+    `;
+  } finally {
+    setProcessing(false);
+  }
+}
 
 async function handleRunAgent() {
   if (!state.selectedAgent || state.isProcessing) return;
@@ -455,7 +625,7 @@ function openWalletPanel() {
   if (!state.wallet) return;
 
   const copyableRow = (val, displayVal, lbl) => `
-    <div class="wallet-detail-value-wrapper" style="display: flex; align-items: center; cursor: pointer; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="navigator.clipboard.writeText('${val}'); showToast('${lbl} copied!', 'success');">
+    <div class="wallet-detail-value-wrapper" style="display: flex; align-items: center; cursor: pointer; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="navigator.clipboard.writeText('${escapeJsString(val)}'); showToast('${escapeJsString(lbl)} copied!', 'success');">
       <span class="wallet-detail-value" title="${val}">${displayVal}</span>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px;">
         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -556,7 +726,7 @@ function renderHistory() {
           <td style="font-family:var(--font-mono);color:var(--success);">$${entry.cost.toFixed(2)}</td>
           <td><span class="status-badge ${statusClass}">${statusIcon} ${statusLabel}</span></td>
           <td>
-            <div style="display: inline-flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="navigator.clipboard.writeText('${entry.txHash || entry.paymentRef}'); showToast('Tx Hash copied!', 'success');" title="Copy to clipboard">
+            <div style="display: inline-flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="navigator.clipboard.writeText('${escapeJsString(entry.txHash || entry.paymentRef)}'); showToast('Tx Hash copied!', 'success');" title="Copy to clipboard">
               <span class="ref-mono">${truncateRef(entry.txHash || entry.paymentRef)}</span>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px;">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -613,6 +783,7 @@ function showToast(message, type = "info") {
     setTimeout(() => toast.remove(), 300);
   }, 4000);
 }
+window.showToast = showToast;
 
 
 function escapeHtml(str) {
@@ -621,17 +792,17 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+function escapeJsString(str) {
+  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
 function truncateAddress(addr) {
   if (!addr || addr.length < 12) return addr;
   return addr.slice(0, 6) + "···" + addr.slice(-4);
 }
 
 function truncateRef(ref) {
-  if (!ref || ref.length < 10) return ref;
-  if (ref.startsWith("0x")) {
-    // Keep '0x' plus the first 4 hex chars, and the last 4 chars
-    return ref.slice(0, 6) + "..." + ref.slice(-4);
-  }
+  if (!ref || ref.length <= 8) return ref;
   return ref.slice(0, 4) + "..." + ref.slice(-4);
 }
 

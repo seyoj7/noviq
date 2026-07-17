@@ -19,11 +19,9 @@ ARC_TESTNET_RPC_URL: str = os.getenv("ARC_TESTNET_RPC_URL", "https://arc-testnet
 USDC_ADDRESS: str = os.getenv("USDC_ADDRESS", "0x3600000000000000000000000000000000000000")
 GATEWAY_API_BASE: str = "https://gateway-api-testnet.circle.com/v1"
 GATEWAY_WALLET_ADDRESS: str = "0x0077777d7EBA4688BDeF3E311b846F25870A19B9"
-GATEWAY_API_BASE: str = "https://gateway-api-testnet.circle.com/v1"
-GATEWAY_WALLET_ADDRESS: str = "0x0077777d7EBA4688BDeF3E311b846F25870A19B9"
 
 # Chain ID for Arc testnet — needed for EIP-3009 domain separator
-ARC_CHAIN_ID: int = int(os.getenv("ARC_CHAIN_ID", "2342"))
+ARC_CHAIN_ID: int = int(os.getenv("ARC_CHAIN_ID", "201980"))
 
 
 # LLM

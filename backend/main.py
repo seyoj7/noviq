@@ -17,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 
 from backend import agents as agent_module
 from backend import payment, wallet
+from backend import services as service_module
 from backend.config import (
     CIRCLE_API_KEY,
     CIRCLE_ENTITY_SECRET,
@@ -30,6 +31,8 @@ from backend.models import (
     HealthResponse,
     RunAgentRequest,
     RunAgentResponse,
+    RunServiceRequest,
+    ServiceInfo,
     WalletInfo,
 )
 
@@ -91,6 +94,63 @@ async def list_agents() -> list[AgentInfo]:
     ]
 
 
+@app.get("/services", response_model=list[ServiceInfo], tags=["Services"])
+async def list_services() -> list[ServiceInfo]:
+    return [
+        ServiceInfo(
+            id=s.id,
+            name=s.name,
+            description=s.description,
+            price_usdc=s.price_usdc,
+        )
+        for s in service_module.SERVICE_REGISTRY.values()
+    ]
+
+
+@app.post("/run-service", tags=["Services"], response_model=None)
+async def run_service(
+    body: RunServiceRequest,
+    x_payment_authorization: str | None = Header(default=None),
+):
+
+    if body.service_id not in service_module.SERVICE_REGISTRY:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Unknown service_id '{body.service_id}'. "
+                   f"Valid options: {list(service_module.SERVICE_REGISTRY)}",
+        )
+
+    service_def = service_module.SERVICE_REGISTRY[body.service_id]
+
+    payment_result = await handle_payment_flow(
+        x_payment_authorization=x_payment_authorization,
+        item_id=body.service_id,
+        price_usdc=service_def.price_usdc,
+        description=f"Run {service_def.name} on Noviq",
+        user_id=body.user_id,
+    )
+    
+    if isinstance(payment_result, JSONResponse):
+        return payment_result
+        
+    payment_ref = payment_result
+
+    try:
+        result = await service_module.run_service(body.service_id, body.input_data)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except httpx.HTTPStatusError as exc:
+        logger.error("Service error: %s", exc)
+        raise HTTPException(status_code=502, detail="Service returned an error.")
+
+    return {
+        "service_id": body.service_id,
+        "result": result,
+        "payment_ref": payment_ref,
+        "authorization_status": "verified"
+    }
+
+
 @app.post("/wallet", response_model=WalletInfo, tags=["Wallets"])
 async def create_or_get_wallet(body: CreateWalletRequest) -> WalletInfo:
     try:
@@ -108,11 +168,69 @@ async def get_wallet(user_id: str) -> WalletInfo:
         raise HTTPException(status_code=502, detail=f"Circle Wallets API error: {exc.response.status_code}")
 
 
-@app.post("/run-agent", tags=["Agents"])
+async def handle_payment_flow(
+    x_payment_authorization: str | None,
+    item_id: str,
+    price_usdc: float,
+    description: str,
+    user_id: str | None,
+) -> str | JSONResponse:
+    # Step 1: No payment header → issue 402 challenge
+    if not x_payment_authorization:
+        challenge = payment.build_payment_challenge(
+            agent_id=item_id,
+            price_usdc=price_usdc,
+            description=description,
+        )
+        return JSONResponse(
+            status_code=402,
+            content=challenge.model_dump(),
+            headers={
+                "X-Payment-Scheme": "x402",
+                "X-Payment-Price-USDC": str(price_usdc),
+            },
+        )
+
+    # Step 2: Auth header present → verify via Circle Nanopayments
+    logger.info(
+        "Received payment authorization for '%s' (price: $%s USDC)",
+        item_id,
+        price_usdc,
+    )
+
+    is_valid, payment_ref = await payment.verify_authorization(
+        auth_header=x_payment_authorization,
+        expected_amount_usdc=price_usdc,
+    )
+
+    if not is_valid:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Payment authorization invalid or insufficient: {payment_ref}",
+        )
+        
+    # Execute the actual on-chain transfer
+    if not user_id:
+        raise HTTPException(
+            status_code=400, 
+            detail="Wallet not connected. Cannot execute payment without user_id."
+        )
+        
+    try:
+        payment_tx_id = await payment.execute_payment(user_id, price_usdc)
+        return payment_tx_id
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=402,
+            detail=str(exc),
+        )
+
+
+@app.post("/run-agent", tags=["Agents"], response_model=None)
 async def run_agent(
     body: RunAgentRequest,
     x_payment_authorization: str | None = Header(default=None),
-) -> RunAgentResponse:
+):
 
     # Validate agent_id up front
     if body.agent_id not in agent_module.AGENT_REGISTRY:
@@ -124,55 +242,18 @@ async def run_agent(
 
     agent_def = agent_module.AGENT_REGISTRY[body.agent_id]
 
-    # Step 1: No payment header → issue 402 challenge
-    if not x_payment_authorization:
-        challenge = payment.build_payment_challenge(
-            agent_id=body.agent_id,
-            price_usdc=agent_def.price_usdc,
-            description=f"Run {agent_def.name} on Noviq",
-        )
-        return JSONResponse(
-            status_code=402,
-            content=challenge.model_dump(),
-            headers={
-                "X-Payment-Scheme": "x402",
-                "X-Payment-Price-USDC": str(agent_def.price_usdc),
-            },
-        )
-
-    # Step 2: Auth header present → verify via Circle Nanopayments
-    logger.info(
-        "Received payment authorization for agent '%s' (price: $%s USDC)",
-        body.agent_id,
-        agent_def.price_usdc,
+    payment_result = await handle_payment_flow(
+        x_payment_authorization=x_payment_authorization,
+        item_id=body.agent_id,
+        price_usdc=agent_def.price_usdc,
+        description=f"Run {agent_def.name} on Noviq",
+        user_id=body.user_id,
     )
-
-    is_valid, payment_ref = await payment.verify_authorization(
-        auth_header=x_payment_authorization,
-        expected_amount_usdc=agent_def.price_usdc,
-    )
-
-    if not is_valid:
-        raise HTTPException(
-            status_code=402,
-            detail=f"Payment authorization invalid or insufficient: {payment_ref}",
-        )
+    
+    if isinstance(payment_result, JSONResponse):
+        return payment_result
         
-    # Execute the actual on-chain transfer
-    if not body.user_id:
-        raise HTTPException(
-            status_code=400, 
-            detail="Wallet not connected. Cannot execute payment without user_id."
-        )
-        
-    try:
-        payment_tx_id = await payment.execute_payment(body.user_id, agent_def.price_usdc)
-        payment_ref = payment_tx_id
-    except ValueError as exc:
-        raise HTTPException(
-            status_code=402,
-            detail=str(exc),
-        )
+    payment_ref = payment_result
 
     # Step 3: Payment verified → run the agent
     try:
