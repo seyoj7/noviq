@@ -28,7 +28,6 @@ const dom = {
   btnBackToServices: $("#btn-back-to-services"),
   selectedServiceName: $("#selected-service-name"),
   selectedServicePrice: $("#selected-service-price"),
-  serviceSnippetContainer: $("#service-snippet-container"),
   selectedAgentName: $("#selected-agent-name"),
   selectedAgentPrice: $("#selected-agent-price"),
   btnBackToAgents: $("#btn-back-to-agents"),
@@ -234,25 +233,19 @@ function selectAgent(agent) {
   state.selectedAgent = agent;
 
   if (agent.is_service) {
-    dom.selectedServiceName.textContent = agent.name;
-    dom.selectedServicePrice.textContent = `$${agent.price_usdc.toFixed(2)} USDC`;
-
-    dom.serviceSnippetContainer.innerHTML = `
-      <p style="margin-bottom: 12px; color: var(--text-primary);"># Python Integration Snippet</p>
-      <p style="color: #c678dd;">import</p> <p style="display:inline; color: #61afef;">requests</p><br><br>
-      <p>url = <span style="color: #98c379;">"${API_BASE}/run-service"</span></p>
-      <p>headers = {<span style="color: #98c379;">"Content-Type"</span>: <span style="color: #98c379;">"application/json"</span>}</p>
-      <p>data = {</p>
-      <p>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #98c379;">"service_id"</span>: <span style="color: #98c379;">"${agent.agent_id}"</span>,</p>
-      <p>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #98c379;">"input_data"</span>: <span style="color: #98c379;">"your_input"</span></p>
-      <p>}</p><br>
-      <p>response = requests.post(url, json=data, headers=headers)</p>
-      <p>print(response.json())</p>
-    `;
-
-    dom.workspace.classList.add("hidden");
-    dom.serviceWorkspace.classList.remove("hidden");
-    dom.serviceWorkspace.scrollIntoView({ behavior: "smooth", block: "start" });
+    const snippetSection = document.getElementById("global-snippet");
+    if (snippetSection) {
+      snippetSection.scrollIntoView({ behavior: "smooth", block: "center" });
+      
+      // Optionally highlight it briefly
+      snippetSection.style.transition = "transform 0.3s ease";
+      snippetSection.style.transform = "scale(1.02)";
+      setTimeout(() => {
+        snippetSection.style.transform = "scale(1)";
+      }, 300);
+    }
+    
+    showToast(`Services are API-only. See the integration snippet above!`, "info");
   } else {
     dom.selectedAgentName.textContent = agent.name;
     dom.selectedAgentPrice.textContent = `$${agent.price_usdc.toFixed(2)} USDC`;
@@ -802,8 +795,8 @@ function truncateAddress(addr) {
 }
 
 function truncateRef(ref) {
-  if (!ref || ref.length <= 8) return ref;
-  return ref.slice(0, 4) + "..." + ref.slice(-4);
+  if (!ref || ref.length < 16) return ref;
+  return ref.slice(0, 8) + "···" + ref.slice(-8);
 }
 
 function sleep(ms) {

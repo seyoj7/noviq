@@ -132,6 +132,33 @@
     </div>
   </section>
 
+  <section id="global-snippet" class="section section-snippet" style="padding-top: 0; max-width: 900px; margin: 0 auto 1rem auto;">
+    <div class="code-snippet-panel">
+      <div class="code-snippet-header">
+        <div class="code-snippet-dots">
+          <div class="code-snippet-dot red"></div>
+          <div class="code-snippet-dot yellow"></div>
+          <div class="code-snippet-dot green"></div>
+        </div>
+        <div class="code-snippet-lang">Python API Integration</div>
+      </div>
+      <div class="code-snippet-body">
+        <button class="code-snippet-copy" onclick="navigator.clipboard.writeText('import requests\n\nurl = \&quot;http://localhost:8000/run-agent\&quot;\nheaders = {\&quot;Content-Type\&quot;: \&quot;application/json\&quot;}\ndata = {\n    \&quot;agent_id\&quot;: \&quot;summarizer\&quot;,\n    \&quot;input_text\&quot;: \&quot;your_input\&quot;\n}\n\n# Add your X-Payment-Authorization header here after 402 challenge\nresponse = requests.post(url, json=data, headers=headers)\nprint(response.json())'); showToast('Snippet copied!', 'success');">Copy</button>
+        <pre><code><span style="color: #c678dd;">import </span><span style="color: #61afef;">requests</span>
+
+<span style="color: #e06c75;">url</span> = <span style="color: #98c379;">"http://localhost:8000/run-agent"</span>
+<span style="color: #e06c75;">headers</span> = {<span style="color: #98c379;">"Content-Type"</span>: <span style="color: #98c379;">"application/json"</span>}
+<span style="color: #e06c75;">data</span> = {
+    <span style="color: #98c379;">"agent_id"</span>: <span style="color: #98c379;">"summarizer"</span>,
+    <span style="color: #98c379;">"input_text"</span>: <span style="color: #98c379;">"your_input"</span>
+}
+
+<span style="color: #5c6370; font-style: italic;"># Add your X-Payment-Authorization header here after 402 challenge</span>
+<span style="color: #e06c75;">response</span> = <span style="color: #61afef;">requests</span>.post(url, json=data, headers=headers)
+<span style="color: #56b6c2;">print</span>(response.json())</code></pre>
+      </div>
+    </div>
+  </section>
 
   <section id="workspace" class="section section-workspace hidden">
     <div class="workspace-container">
@@ -190,14 +217,12 @@
               style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-secondary);"></span>
           </div>
         </div>
-        <div id="service-snippet-container" style="padding: var(--space-xl); font-family: var(--font-mono); font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; overflow-y: auto; height: 100%;">
-        </div>
       </div>
     </div>
   </section>
 
 
-  <section id="history" class="section section-history hidden">
+  <section id="history" class="section section-history hidden" style="padding-top: 2rem;">
     <div class="section-header">
       <span class="eyebrow">logs</span>
       <h2 class="section-title">Transaction History</h2>
