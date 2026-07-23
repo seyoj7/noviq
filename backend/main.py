@@ -21,7 +21,6 @@ from backend import services as service_module
 from backend.config import (
     CIRCLE_API_KEY,
     CIRCLE_ENTITY_SECRET,
-    CORS_ORIGINS,
     NVIDIA_API_KEY,
     SELLER_WALLET_ADDRESS,
 )
@@ -60,8 +59,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -46,15 +46,3 @@ AGENT_PRICES: dict[str, float] = {
     "debugger":   float(os.getenv("PRICE_DEBUGGER",   "0.10")),
     "researcher": float(os.getenv("PRICE_RESEARCHER",  "0.08")),
 }
-
-
-# CORS / server
-# Comma-separated list of allowed origins for CORS (frontend dev server)
-CORS_ORIGINS: list[str] = [
-    o.strip()
-    for o in os.getenv(
-        "CORS_ORIGINS",
-        "http://localhost:3000,http://localhost:5173,http://localhost:5500,http://127.0.0.1:5500,http://localhost:8000,http://localhost:8080",
-    ).split(",")
-    if o.strip()
-]

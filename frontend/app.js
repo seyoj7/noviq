@@ -247,7 +247,7 @@ function selectAgent(agent) {
     const snippetSection = document.getElementById("global-snippet");
     if (snippetSection) {
       snippetSection.scrollIntoView({ behavior: "smooth", block: "center" });
-      
+
       // Optionally highlight it briefly
       snippetSection.style.transition = "transform 0.3s ease";
       snippetSection.style.transform = "scale(1.02)";
@@ -255,7 +255,7 @@ function selectAgent(agent) {
         snippetSection.style.transform = "scale(1)";
       }, 300);
     }
-    
+
     showToast(`Services are API-only. See the integration snippet above!`, "info");
   } else {
     dom.selectedAgentName.textContent = agent.name;
