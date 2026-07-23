@@ -608,8 +608,8 @@ function updateWalletUI() {
 
   dom.navbarWallet.innerHTML = `
     <div class="navbar-wallet-info">
-      <div class="wallet-address-chip" id="nav-wallet-address" title="${state.wallet.address}">
-        ${truncateAddress(state.wallet.address)}
+      <div class="wallet-address-chip" id="nav-wallet-address" title="${state.wallet.user_id}">
+        ${truncateAddress(state.wallet.user_id)}
       </div>
     </div>
   `;
@@ -644,8 +644,8 @@ function openWalletPanel() {
       <div class="wallet-balance-currency">USDC on Arc Testnet</div>
     </div>
     <div class="wallet-detail">
-      <span class="wallet-detail-label">Address</span>
-      ${copyableRow(state.wallet.address, truncateAddress(state.wallet.address), 'Address')}
+      <span class="wallet-detail-label">Circle Address</span>
+      ${copyableRow(state.wallet.address, truncateAddress(state.wallet.address), 'Circle Address')}
     </div>
     <div class="wallet-detail">
       <span class="wallet-detail-label">Wallet ID</span>
@@ -721,24 +721,26 @@ function renderHistory() {
         minute: '2-digit',
         second: '2-digit',
         hour12: true,
-        timeZone: 'UTC'
+        timeZone: 'Asia/Kolkata'
       });
 
       return `
         <tr>
+          <td style="color:var(--text-tertiary);">${time}</td>
           <td>${escapeHtml(entry.agent)}</td>
           <td style="font-family:var(--font-mono);color:var(--success);">$${entry.cost.toFixed(2)}</td>
           <td><span class="status-badge ${statusClass}">${statusIcon} ${statusLabel}</span></td>
           <td>
-            <div style="display: inline-flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="navigator.clipboard.writeText('${escapeJsString(entry.txHash || entry.paymentRef)}'); showToast('Tx Hash copied!', 'success');" title="Copy to clipboard">
-              <span class="ref-mono">${truncateRef(entry.txHash || entry.paymentRef)}</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px;">
+            <div style="display: inline-flex; align-items: center; justify-content: center; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8">
+              <a href="https://testnet.arcscan.app/tx/${entry.txHash || entry.paymentRef}" target="_blank" rel="noopener noreferrer" class="ref-mono" style="color: inherit; text-decoration: underline;">
+                ${truncateRef(entry.txHash || entry.paymentRef)}
+              </a>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; cursor: pointer;" onclick="navigator.clipboard.writeText('${escapeJsString(entry.txHash || entry.paymentRef)}'); showToast('Tx Hash copied!', 'success');" title="Copy to clipboard">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
               </svg>
             </div>
           </td>
-          <td style="color:var(--text-tertiary);">${time}</td>
         </tr>
       `;
     })
