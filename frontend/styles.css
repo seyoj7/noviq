@@ -56,7 +56,7 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: url('hero-bg.png');
+  background-image: url('assets/noviq_hero_bg.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -1056,6 +1056,156 @@ h4 {
   50% {
     opacity: 0;
   }
+}
+
+
+/* ── Noscript fallback ── */
+.noscript-fallback {
+  padding: 2rem;
+  text-align: center;
+  color: #fafafa;
+  background: #0a0a0a;
+  font-family: sans-serif;
+}
+
+/* ── Global snippet section override ── */
+.section-snippet-wrapper {
+  max-width: 900px;
+  margin: 0 auto var(--space-md) auto;
+}
+
+/* ── Code syntax highlighting ── */
+.syntax-keyword {
+  color: #c678dd;
+}
+
+.syntax-module {
+  color: #61afef;
+}
+
+.syntax-variable {
+  color: #e06c75;
+}
+
+.syntax-string {
+  color: #98c379;
+}
+
+.syntax-comment {
+  color: #5c6370;
+  font-style: italic;
+}
+
+.syntax-builtin {
+  color: #56b6c2;
+}
+
+/* ── Workspace layout: single-column override ── */
+.workspace-container-single {
+  grid-template-columns: 1fr;
+}
+
+/* ── Workspace input panel: primary background ── */
+.workspace-input-panel--primary {
+  background: var(--bg-primary);
+}
+
+/* ── Selected agent info row ── */
+.selected-agent-info {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+/* ── Selected service price chip ── */
+.selected-agent-price {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent-secondary);
+}
+
+/* ── Disconnect wallet button padding ── */
+#btn-disconnect-wallet {
+  padding: var(--space-xs) var(--space-sm);
+}
+
+/* ── Locked service card ── */
+.agent-card--locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── Agent card price accent ── */
+.agent-card-price--accent {
+  color: var(--accent-secondary);
+  border-color: var(--accent-secondary);
+}
+
+/* ── Wallet detail copyable row ── */
+.wallet-detail-value-wrapper {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.wallet-detail-value-wrapper:hover {
+  opacity: 1;
+}
+
+.wallet-detail-value-wrapper--static {
+  cursor: default;
+}
+
+.wallet-detail-copy-icon {
+  margin-left: 6px;
+}
+
+/* ── Wallet disclaimer ── */
+.wallet-disclaimer {
+  margin-top: var(--space-sm);
+  text-align: center;
+}
+
+.wallet-disclaimer p {
+  font-size: 0.65rem;
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}
+
+/* ── History table cell utilities ── */
+.history-cell-time {
+  color: var(--text-tertiary);
+}
+
+.history-cell-cost {
+  font-family: var(--font-mono);
+  color: var(--success);
+}
+
+/* ── History tx hash wrapper ── */
+.history-tx-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.history-tx-wrapper:hover {
+  opacity: 1;
+}
+
+.history-tx-link {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.history-tx-copy-icon {
+  margin-left: 6px;
+  cursor: pointer;
 }
 
 

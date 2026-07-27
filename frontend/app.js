@@ -137,9 +137,7 @@ function renderServiceCards() {
     const card = document.createElement("div");
     card.className = "agent-card service-card";
     if (isLocked) {
-      card.style.opacity = "0.5";
-      card.style.cursor = "not-allowed";
-      card.style.pointerEvents = "none";
+      card.classList.add('agent-card--locked');
     }
     card.style.animationDelay = `${index * 0.1}s`;
     card.dataset.serviceId = service.id;
@@ -150,7 +148,7 @@ function renderServiceCards() {
     card.innerHTML = `
       <div class="agent-card-header">
         <span class="agent-card-name">${escapeHtml(nameText)}</span>
-        <span class="agent-card-price" style="color: var(--accent-secondary); border-color: var(--accent-secondary);">$${service.price_usdc.toFixed(2)} USDC</span>
+        <span class="agent-card-price agent-card-price--accent">$${service.price_usdc.toFixed(2)} USDC</span>
       </div>
       <p class="agent-card-desc">${escapeHtml(service.description)}</p>
       <div class="agent-card-footer">
@@ -383,9 +381,9 @@ function openWalletPanel() {
   if (!state.wallet) return;
 
   const copyableRow = (val, displayVal, lbl) => `
-    <div class="wallet-detail-value-wrapper" style="display: flex; align-items: center; cursor: pointer; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" onclick="navigator.clipboard.writeText('${escapeJsString(val)}'); showToast('${escapeJsString(lbl)} copied!', 'success');">
+    <div class="wallet-detail-value-wrapper" onclick="navigator.clipboard.writeText('${escapeJsString(val)}'); showToast('${escapeJsString(lbl)} copied!', 'success');">
       <span class="wallet-detail-value" title="${val}">${displayVal}</span>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px;">
+      <svg class="wallet-detail-copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
       </svg>
@@ -411,12 +409,12 @@ function openWalletPanel() {
     </div>
     <div class="wallet-detail">
       <span class="wallet-detail-label">Network</span>
-      <div class="wallet-detail-value-wrapper" style="opacity: 0.8;">
+      <div class="wallet-detail-value-wrapper wallet-detail-value-wrapper--static">
         <span class="wallet-detail-value" title="Arc Testnet">Arc Testnet</span>
       </div>
     </div>
-    <div style="margin-top: var(--space-sm); text-align: center;">
-      <p style="font-size: 0.65rem; color: var(--text-tertiary); line-height: 1.4;">
+    <div class="wallet-disclaimer">
+      <p>
         This is a developer-controlled Circle wallet created for you automatically.
       </p>
     </div>
@@ -480,16 +478,16 @@ function renderHistory() {
 
       return `
         <tr>
-          <td style="color:var(--text-tertiary);">${time}</td>
+          <td class="history-cell-time">${time}</td>
           <td>${escapeHtml(entry.agent)}</td>
-          <td style="font-family:var(--font-mono);color:var(--success);">$${entry.cost.toFixed(2)}</td>
+          <td class="history-cell-cost">$${entry.cost.toFixed(2)}</td>
           <td><span class="status-badge ${statusClass}">${statusIcon} ${statusLabel}</span></td>
           <td>
-            <div style="display: inline-flex; align-items: center; justify-content: center; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8">
-              <a href="https://testnet.arcscan.app/tx/${entry.txHash || entry.paymentRef}" target="_blank" rel="noopener noreferrer" class="ref-mono" style="color: inherit; text-decoration: underline;">
+            <div class="history-tx-wrapper">
+              <a href="https://testnet.arcscan.app/tx/${entry.txHash || entry.paymentRef}" target="_blank" rel="noopener noreferrer" class="ref-mono history-tx-link">
                 ${truncateRef(entry.txHash || entry.paymentRef)}
               </a>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; cursor: pointer;" onclick="navigator.clipboard.writeText('${escapeJsString(entry.txHash || entry.paymentRef)}'); showToast('Tx Hash copied!', 'success');" title="Copy to clipboard">
+              <svg class="history-tx-copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" onclick="navigator.clipboard.writeText('${escapeJsString(entry.txHash || entry.paymentRef)}'); showToast('Tx Hash copied!', 'success');" title="Copy to clipboard">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
               </svg>

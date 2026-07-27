@@ -7,7 +7,7 @@
   <meta name="description"
     content="Noviq — Pay-per-request AI services powered by Circle Nanopayments on Arc. No subscriptions, no gas, just sign and run." />
   <title>Noviq</title>
-  <link rel="icon" type="image/png" href="logo/Noviq_favicon.png" />
+  <link rel="icon" type="image/png" href="assets/Noviq_favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -19,7 +19,7 @@
 
 <body>
   <noscript>
-    <div style="padding: 2rem; text-align: center; color: #fafafa; background: #0a0a0a; font-family: sans-serif;">
+    <div class="noscript-fallback">
       <h2>JavaScript Required</h2>
       <p>Noviq requires JavaScript to run. Please enable JavaScript in your browser settings.</p>
     </div>
@@ -27,7 +27,7 @@
 
   <nav id="navbar" class="navbar">
     <div class="navbar-brand">
-      <img src="logo/Noviq.png" alt="Noviq Logo" class="brand-logo" />
+      <img src="assets/Noviq.png" alt="Noviq Logo" class="brand-logo" />
       <span class="brand-text">noviq</span>
     </div>
     <div class="navbar-links">
@@ -120,8 +120,7 @@
     </div>
   </section>
 
-  <section id="global-snippet" class="section section-snippet"
-    style="max-width: 900px; margin: 0 auto var(--space-md) auto;">
+  <section id="global-snippet" class="section section-snippet section-snippet-wrapper">
     <div class="code-snippet-panel">
       <div class="code-snippet-header">
         <div class="code-snippet-dots">
@@ -134,18 +133,18 @@
       <div class="code-snippet-body">
         <button class="code-snippet-copy"
           onclick="navigator.clipboard.writeText('import requests\n\nurl = \&quot;http://localhost:8000/run-service\&quot;\nheaders = {\&quot;Content-Type\&quot;: \&quot;application/json\&quot;}\ndata = {\n    \&quot;service_id\&quot;: \&quot;token_price\&quot;,\n    \&quot;input_data\&quot;: \&quot;your_input\&quot;\n}\n\n# Add your X-Payment-Authorization header here after 402 challenge\nresponse = requests.post(url, json=data, headers=headers)\nprint(response.json())'); showToast('Snippet copied!', 'success');">Copy</button>
-        <pre><code><span style="color: #c678dd;">import </span><span style="color: #61afef;">requests</span>
+        <pre><code><span class="syntax-keyword">import </span><span class="syntax-module">requests</span>
 
-<span style="color: #e06c75;">url</span> = <span style="color: #98c379;">"http://localhost:8000/run-service"</span>
-<span style="color: #e06c75;">headers</span> = {<span style="color: #98c379;">"Content-Type"</span>: <span style="color: #98c379;">"application/json"</span>}
-<span style="color: #e06c75;">data</span> = {
-    <span style="color: #98c379;">"service_id"</span>: <span style="color: #98c379;">"token_price"</span>,
-    <span style="color: #98c379;">"input_data"</span>: <span style="color: #98c379;">"your_input"</span>
+<span class="syntax-variable">url</span> = <span class="syntax-string">"http://localhost:8000/run-service"</span>
+<span class="syntax-variable">headers</span> = {<span class="syntax-string">"Content-Type"</span>: <span class="syntax-string">"application/json"</span>}
+<span class="syntax-variable">data</span> = {
+    <span class="syntax-string">"service_id"</span>: <span class="syntax-string">"token_price"</span>,
+    <span class="syntax-string">"input_data"</span>: <span class="syntax-string">"your_input"</span>
 }
 
-<span style="color: #5c6370; font-style: italic;"># Add your X-Payment-Authorization header here after 402 challenge</span>
-<span style="color: #e06c75;">response</span> = <span style="color: #61afef;">requests</span>.post(url, json=data, headers=headers)
-<span style="color: #56b6c2;">print</span>(response.json())</code></pre>
+<span class="syntax-comment"># Add your X-Payment-Authorization header here after 402 challenge</span>
+<span class="syntax-variable">response</span> = <span class="syntax-module">requests</span>.post(url, json=data, headers=headers)
+<span class="syntax-builtin">print</span>(response.json())</code></pre>
       </div>
     </div>
   </section>
@@ -153,16 +152,15 @@
 
 
   <section id="service-workspace" class="section section-workspace hidden">
-    <div class="workspace-container" style="grid-template-columns: 1fr;">
-      <div class="workspace-input-panel glass-panel" style="background: var(--bg-primary);">
+    <div class="workspace-container workspace-container-single">
+      <div class="workspace-input-panel glass-panel workspace-input-panel--primary">
         <div class="panel-header">
           <button class="btn btn-ghost btn-sm" id="btn-back-to-services">
             ← Back
           </button>
-          <div class="selected-agent-info" style="display: flex; gap: var(--space-sm); align-items: center;">
+          <div class="selected-agent-info">
             <span class="selected-agent-name font-bold" id="selected-service-name"></span>
-            <span class="selected-agent-price" id="selected-service-price"
-              style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-secondary);"></span>
+            <span class="selected-agent-price" id="selected-service-price"></span>
           </div>
         </div>
       </div>
@@ -209,8 +207,7 @@
     <div class="wallet-panel-content glass-panel">
       <div class="wallet-panel-header">
         <h3>Your Wallet</h3>
-        <button class="btn btn-ghost btn-sm text-error" id="btn-disconnect-wallet" title="Disconnect Wallet"
-          style="padding: var(--space-xs) var(--space-sm);">
+        <button class="btn btn-ghost btn-sm text-error" id="btn-disconnect-wallet" title="Disconnect Wallet">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
