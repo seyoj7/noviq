@@ -231,13 +231,7 @@ h4 {
 .btn-primary:hover:not(:disabled) {
   background: transparent;
   color: var(--text-primary);
-  transform: translateY(-2px);
 }
-
-.btn-primary:active:not(:disabled) {
-  transform: translateY(0);
-}
-
 
 .btn-outline {
   background: transparent;
