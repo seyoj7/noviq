@@ -31,12 +31,13 @@
       <span class="brand-text">noviq</span>
     </div>
     <div class="navbar-links">
-      <a href="#how-it-works">Features</a>
-      <a href="https://developers.circle.com/" target="_blank">Docs</a>
+      <a href="#how-it-works">Architecture</a>
+      <a href="#services">Services</a>
+      <a href="#global-snippet">API</a>
     </div>
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <a href="https://faucet.circle.com/" target="_blank" class="btn btn-secondary btn-sm" id="btn-faucet"
-        title="Get testnet USDC" style="padding: 6px 16px; font-weight: 600;">
+    <div class="navbar-controls">
+      <a href="https://faucet.circle.com/" target="_blank" class="btn btn-secondary btn-sm font-semibold" id="btn-faucet"
+        title="Get testnet USDC">
         Faucet ↗
       </a>
       <div class="navbar-wallet" id="navbar-wallet">
@@ -49,13 +50,13 @@
   <header id="hero" class="hero">
     <div class="hero-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" style="color: #f59e0b;">
+        stroke-linecap="round" stroke-linejoin="round" class="text-warning">
         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
       </svg>
       pay-per-request for APIs
     </div>
     <h1 class="hero-title">
-      The Payment Layer
+      The Payment Layer<br />
       for AI & APIs
     </h1>
     <p class="hero-subtitle">
@@ -119,7 +120,7 @@
     </div>
   </section>
 
-  <section id="global-snippet" class="section section-snippet" style="max-width: 900px; margin: 0 auto 1rem auto;">
+  <section id="global-snippet" class="section section-snippet" style="max-width: 900px; margin: 0 auto var(--space-md) auto;">
     <div class="code-snippet-panel">
       <div class="code-snippet-header">
         <div class="code-snippet-dots">
@@ -157,8 +158,8 @@
           <button class="btn btn-ghost btn-sm" id="btn-back-to-services">
             ← Back
           </button>
-          <div class="selected-agent-info" style="display: flex; gap: 8px; align-items: center;">
-            <span class="selected-agent-name" id="selected-service-name" style="font-weight: 700;"></span>
+          <div class="selected-agent-info" style="display: flex; gap: var(--space-sm); align-items: center;">
+            <span class="selected-agent-name font-bold" id="selected-service-name"></span>
             <span class="selected-agent-price" id="selected-service-price"
               style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-secondary);"></span>
           </div>
@@ -207,8 +208,8 @@
     <div class="wallet-panel-content glass-panel">
       <div class="wallet-panel-header">
         <h3>Your Wallet</h3>
-        <button class="btn btn-ghost btn-sm" id="btn-disconnect-wallet" title="Disconnect Wallet"
-          style="color: #ff4d4f; padding: 2px 6px;">
+        <button class="btn btn-ghost btn-sm text-error" id="btn-disconnect-wallet" title="Disconnect Wallet"
+          style="padding: var(--space-xs) var(--space-sm);">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
