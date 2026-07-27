@@ -1,5 +1,5 @@
 :root {
-  --bg-primary: #0c0c0c;
+  --bg-primary: #0a0a0a;
   --bg-secondary: #121212;
   --bg-tertiary: #1a1a1a;
   --bg-elevated: #242424;
@@ -48,6 +48,21 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url('hero-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
 }
 
 ::-webkit-scrollbar {
@@ -357,6 +372,7 @@ h4 {
 
 
 .hero {
+  position: relative;
   margin-top: -45px;
   padding: var(--space-3xl) var(--space-xl) var(--space-xl);
   display: flex;
@@ -365,6 +381,11 @@ h4 {
   justify-content: center;
   text-align: center;
   min-height: calc(100vh - 68px);
+}
+
+.hero>* {
+  position: relative;
+  z-index: 1;
 }
 
 .hero-badge {
@@ -422,12 +443,14 @@ h4 {
   align-items: center;
   gap: var(--space-md);
   font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
 }
 
 .hero-tech-stack span {
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
 }
 
 
