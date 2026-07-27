@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description"
-    content="Noviq — Pay-per-request AI agents powered by Circle Nanopayments on Arc. No subscriptions, no gas, just sign and run." />
+    content="Noviq — Pay-per-request AI services powered by Circle Nanopayments on Arc. No subscriptions, no gas, just sign and run." />
   <title>Noviq</title>
   <link rel="icon" type="image/png" href="logo/Noviq_favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -52,19 +52,19 @@
         stroke-linecap="round" stroke-linejoin="round" style="color: #f59e0b;">
         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
       </svg>
-      pay-per-request for AI agents
+      pay-per-request for APIs
     </div>
     <h1 class="hero-title">
-      Agents and services<br />
-      Per Request
+      The Payment Layer
+      for AI & APIs
     </h1>
     <p class="hero-subtitle">
-      Run AI agents and services for fractions of a cent. No subscriptions, no gas fees -
+      Run AI services for fractions of a cent. No subscriptions, no gas fees -
       just sign an off-chain authorization and get instant results on Arc.
     </p>
     <div class="hero-actions">
       <button class="btn btn-primary btn-lg" id="btn-get-started">
-        Try an Agent
+        Explore Services
       </button>
       <a href="https://github.com/circlefin/arc-nanopayments" target="_blank" class="btn btn-outline btn-lg">
         View on GitHub ↗
@@ -80,7 +80,7 @@
     <div class="section-header">
       <span class="eyebrow">ARCHITECTURE</span>
       <h2 class="section-title">How it works</h2>
-      <p class="section-subtitle">A seamless journey from wallet connection to agent execution.</p>
+      <p class="section-subtitle">A seamless journey from wallet connection to service execution.</p>
     </div>
     <div class="features-grid">
       <div class="feature-card glass-panel" data-step="1">
@@ -96,26 +96,14 @@
       <div class="feature-card glass-panel" data-step="3">
         <div class="feature-icon">⚡</div>
         <h3 class="feature-title">03. Run</h3>
-        <p class="feature-desc">Your agent executes immediately. Settlement happens in a batch later - you don't wait.
+        <p class="feature-desc">Your service executes immediately. Settlement happens in a batch later - you don't wait.
         </p>
       </div>
     </div>
   </section>
 
 
-  <section id="agents" class="section section-agents">
-    <div class="section-header">
-      <span class="eyebrow">marketplace</span>
-      <h2 class="section-title">Choose an Agent</h2>
-      <p class="section-subtitle">Each agent is priced per request in USDC. Pick one and try it.</p>
-    </div>
-    <div class="agents-grid" id="agents-grid">
-      <div class="agents-loading">
-        <div class="spinner"></div>
-        <p>Loading agents...</p>
-      </div>
-    </div>
-  </section>
+
 
 
   <section id="services" class="section section-services">
@@ -143,14 +131,14 @@
       </div>
       <div class="code-snippet-body">
         <button class="code-snippet-copy"
-          onclick="navigator.clipboard.writeText('import requests\n\nurl = \&quot;http://localhost:8000/run-agent\&quot;\nheaders = {\&quot;Content-Type\&quot;: \&quot;application/json\&quot;}\ndata = {\n    \&quot;agent_id\&quot;: \&quot;summarizer\&quot;,\n    \&quot;input_text\&quot;: \&quot;your_input\&quot;\n}\n\n# Add your X-Payment-Authorization header here after 402 challenge\nresponse = requests.post(url, json=data, headers=headers)\nprint(response.json())'); showToast('Snippet copied!', 'success');">Copy</button>
+          onclick="navigator.clipboard.writeText('import requests\n\nurl = \&quot;http://localhost:8000/run-service\&quot;\nheaders = {\&quot;Content-Type\&quot;: \&quot;application/json\&quot;}\ndata = {\n    \&quot;service_id\&quot;: \&quot;token_price\&quot;,\n    \&quot;input_data\&quot;: \&quot;your_input\&quot;\n}\n\n# Add your X-Payment-Authorization header here after 402 challenge\nresponse = requests.post(url, json=data, headers=headers)\nprint(response.json())'); showToast('Snippet copied!', 'success');">Copy</button>
         <pre><code><span style="color: #c678dd;">import </span><span style="color: #61afef;">requests</span>
 
-<span style="color: #e06c75;">url</span> = <span style="color: #98c379;">"http://localhost:8000/run-agent"</span>
+<span style="color: #e06c75;">url</span> = <span style="color: #98c379;">"http://localhost:8000/run-service"</span>
 <span style="color: #e06c75;">headers</span> = {<span style="color: #98c379;">"Content-Type"</span>: <span style="color: #98c379;">"application/json"</span>}
 <span style="color: #e06c75;">data</span> = {
-    <span style="color: #98c379;">"agent_id"</span>: <span style="color: #98c379;">"summarizer"</span>,
-    <span style="color: #98c379;">"input_text"</span>: <span style="color: #98c379;">"your_input"</span>
+    <span style="color: #98c379;">"service_id"</span>: <span style="color: #98c379;">"token_price"</span>,
+    <span style="color: #98c379;">"input_data"</span>: <span style="color: #98c379;">"your_input"</span>
 }
 
 <span style="color: #5c6370; font-style: italic;"># Add your X-Payment-Authorization header here after 402 challenge</span>
@@ -160,49 +148,7 @@
     </div>
   </section>
 
-  <section id="workspace" class="section section-workspace hidden">
-    <div class="workspace-container">
-      <div class="workspace-input-panel glass-panel">
-        <div class="panel-header">
-          <button class="btn btn-ghost btn-sm" id="btn-back-to-agents">
-            ← Back
-          </button>
-          <div class="selected-agent-info" style="display: flex; gap: 8px; align-items: center;">
-            <span class="selected-agent-name" id="selected-agent-name" style="font-weight: 700;"></span>
-            <span class="selected-agent-price" id="selected-agent-price"
-              style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-tertiary);"></span>
-          </div>
-        </div>
-        <textarea id="agent-input" class="agent-input" placeholder="Type your input here..." rows="12"></textarea>
-        <div class="input-actions">
-          <span class="char-count" id="char-count">0 chars</span>
-          <button class="btn btn-primary btn-sm" id="btn-run-agent" disabled>
-            <span class="btn-content" style="display: flex; align-items: center; gap: 4px;">
-              <span class="btn-icon">▶</span>
-              Run Agent
-            </span>
-            <span class="btn-loading hidden" style="display: flex; align-items: center; gap: 6px;">
-              <span class="spinner-sm"></span>
-              Processing...
-            </span>
-          </button>
-        </div>
-      </div>
 
-      <div class="workspace-output-panel glass-panel">
-        <div class="panel-header">
-          <span class="panel-title">Output</span>
-          <div class="payment-status" id="payment-status"></div>
-        </div>
-        <div class="agent-output" id="agent-output">
-          <div class="output-placeholder">
-            <div class="output-placeholder-icon" style="font-size: 2rem; margin-bottom: 1rem;">◈</div>
-            <p>Select an agent and provide input to see results here.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <section id="service-workspace" class="section section-workspace hidden">
     <div class="workspace-container" style="grid-template-columns: 1fr;">

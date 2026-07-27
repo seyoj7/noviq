@@ -15,21 +15,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from backend import agents as agent_module
 from backend import payment, wallet
 from backend import services as service_module
 from backend.config import (
     CIRCLE_API_KEY,
     CIRCLE_ENTITY_SECRET,
-    NVIDIA_API_KEY,
     SELLER_WALLET_ADDRESS,
 )
 from backend.models import (
-    AgentInfo,
     CreateWalletRequest,
     HealthResponse,
-    RunAgentRequest,
-    RunAgentResponse,
     RunServiceRequest,
     ServiceInfo,
     WalletInfo,
@@ -47,9 +42,9 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 # FastAPI app
 app = FastAPI(
-    title="Noviq — AI Agent Marketplace",
+    title="Noviq — AI Services Marketplace",
     description=(
-        "Pay-per-request AI agents powered by Circle Nanopayments on Arc. "
+        "Pay-per-request AI services powered by Circle Nanopayments on Arc. "
         "No subscriptions. No gas. Just sign and run."
     ),
     version="0.1.0",
@@ -75,22 +70,10 @@ async def health() -> HealthResponse:
         status="ok",
         circle_api_key_set=bool(CIRCLE_API_KEY),
         entity_secret_set=bool(CIRCLE_ENTITY_SECRET),
-        nvidia_key_set=bool(NVIDIA_API_KEY),
         seller_wallet_configured=bool(SELLER_WALLET_ADDRESS),
     )
 
 
-@app.get("/agents", response_model=list[AgentInfo], tags=["Agents"])
-async def list_agents() -> list[AgentInfo]:
-    return [
-        AgentInfo(
-            agent_id=a.agent_id,
-            name=a.name,
-            description=a.description,
-            price_usdc=a.price_usdc,
-        )
-        for a in agent_module.AGENT_REGISTRY.values()
-    ]
 
 
 @app.get("/services", response_model=list[ServiceInfo], tags=["Services"])
@@ -225,59 +208,6 @@ async def handle_payment_flow(
         )
 
 
-@app.post("/run-agent", tags=["Agents"], response_model=None)
-async def run_agent(
-    body: RunAgentRequest,
-    x_payment_authorization: str | None = Header(default=None),
-):
-
-    # Validate agent_id up front
-    if body.agent_id not in agent_module.AGENT_REGISTRY:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Unknown agent_id '{body.agent_id}'. "
-                   f"Valid options: {list(agent_module.AGENT_REGISTRY)}",
-        )
-
-    agent_def = agent_module.AGENT_REGISTRY[body.agent_id]
-
-    payment_result = await handle_payment_flow(
-        x_payment_authorization=x_payment_authorization,
-        item_id=body.agent_id,
-        price_usdc=agent_def.price_usdc,
-        description=f"Run {agent_def.name} on Noviq",
-        user_id=body.user_id,
-    )
-    
-    if isinstance(payment_result, JSONResponse):
-        return payment_result
-        
-    payment_ref = payment_result
-
-    # Step 3: Payment verified → run the agent
-    try:
-        result = await agent_module.run_agent(body.agent_id, body.input_text)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
-    except httpx.HTTPStatusError as exc:
-        logger.error("LLM API error: %s", exc)
-        raise HTTPException(status_code=502, detail="LLM provider returned an error. Try again shortly.")
-
-    authorization_status = "verified"
-
-    logger.info(
-        "Agent '%s' completed. payment_ref=%s status=%s",
-        body.agent_id,
-        payment_ref,
-        authorization_status,
-    )
-
-    return RunAgentResponse(
-        agent_id=body.agent_id,
-        result=result,
-        payment_ref=payment_ref,
-        authorization_status=authorization_status,
-    )
 
 
 # Serve frontend — GET-only routes so POST API endpoints are not intercepted.

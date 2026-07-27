@@ -10,7 +10,7 @@ from backend.config import (
     SELLER_WALLET_ADDRESS,
     USDC_ADDRESS,
 )
-from backend.models import AgentInfo, PaymentChallenge
+from backend.models import PaymentChallenge
 from backend.wallet import _get_entity_secret_ciphertext, _WALLET_STORE, get_or_create_wallet
 
 logger = logging.getLogger(__name__)

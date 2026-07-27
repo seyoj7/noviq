@@ -4,9 +4,8 @@ const API_BASE = "http://localhost:8000";
 const state = {
   userId: null,
   wallet: null,
-  agents: [],
   services: [],
-  selectedAgent: null,
+  selectedService: null,
   isProcessing: false,
   history: [],
 };
@@ -21,22 +20,11 @@ const dom = {
   btnConnect: $("#btn-connect-wallet"),
   btnGetStarted: $("#btn-get-started"),
 
-  agentsGrid: $("#agents-grid"),
   servicesGrid: $("#services-grid"),
-  workspace: $("#workspace"),
   serviceWorkspace: $("#service-workspace"),
   btnBackToServices: $("#btn-back-to-services"),
   selectedServiceName: $("#selected-service-name"),
   selectedServicePrice: $("#selected-service-price"),
-  selectedAgentName: $("#selected-agent-name"),
-  selectedAgentPrice: $("#selected-agent-price"),
-  btnBackToAgents: $("#btn-back-to-agents"),
-
-  agentInput: $("#agent-input"),
-  charCount: $("#char-count"),
-  btnRunAgent: $("#btn-run-agent"),
-  agentOutput: $("#agent-output"),
-  paymentStatus: $("#payment-status"),
 
   walletPanel: $("#wallet-panel"),
   walletBackdrop: $("#wallet-backdrop"),
@@ -73,7 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   bindEvents();
-  fetchAgents();
   fetchServices();
   if (!savedWallet) renderHistory();
   initScrollEffects();
@@ -84,25 +71,15 @@ function bindEvents() {
 
   dom.btnConnect.addEventListener("click", handleConnectWallet);
   dom.btnGetStarted.addEventListener("click", () => {
-    document.getElementById("agents").scrollIntoView({ behavior: "smooth" });
+    document.getElementById("services").scrollIntoView({ behavior: "smooth" });
   });
 
 
-  dom.btnBackToAgents.addEventListener("click", handleBackToAgents);
   dom.btnBackToServices.addEventListener("click", handleBackToServices);
-  dom.agentInput.addEventListener("input", handleInputChange);
-  dom.btnRunAgent.addEventListener("click", handleRunAction);
 
 
   dom.btnDisconnectWallet.addEventListener("click", handleDisconnectWallet);
   dom.walletBackdrop.addEventListener("click", closeWalletPanel);
-
-
-  dom.agentInput.addEventListener("keydown", (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-      handleRunAction();
-    }
-  });
 }
 
 function initScrollEffects() {
@@ -127,56 +104,6 @@ async function apiFetch(path, options = {}) {
   return resp;
 }
 
-async function fetchAgents() {
-  try {
-    const resp = await apiFetch("/agents");
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    state.agents = await resp.json();
-    renderAgentCards();
-  } catch (err) {
-    console.error("Failed to fetch agents:", err);
-    dom.agentsGrid.innerHTML = `
-      <div class="agents-error">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-          <line x1="12" y1="9" x2="12" y2="13"></line>
-          <line x1="12" y1="17" x2="12.01" y2="17"></line>
-        </svg>
-        <h3>Server Is Offline</h3>
-      </div>
-    `;
-    showToast(
-      "Backend not reachable. Ensure FastAPI is running.",
-      "error"
-    );
-  }
-}
-
-function renderAgentCards() {
-  dom.agentsGrid.innerHTML = "";
-
-  state.agents.forEach((agent, index) => {
-    const card = document.createElement("div");
-    card.className = "agent-card";
-    card.style.animationDelay = `${index * 0.1}s`;
-    card.dataset.agentId = agent.agent_id;
-
-    card.innerHTML = `
-      <div class="agent-card-header">
-        <span class="agent-card-name">${escapeHtml(agent.name)}</span>
-        <span class="agent-card-price" style="color: var(--accent-secondary); border-color: var(--accent-secondary);">$${agent.price_usdc.toFixed(2)} USDC</span>
-      </div>
-      <p class="agent-card-desc">${escapeHtml(agent.description)}</p>
-      <div class="agent-card-footer">
-        <span class="agent-card-cta">Try it →</span>
-      </div>
-    `;
-
-    card.addEventListener("click", () => selectAgent(agent));
-    dom.agentsGrid.appendChild(card);
-  });
-}
-
 async function fetchServices() {
   try {
     const resp = await apiFetch("/services");
@@ -195,6 +122,10 @@ async function fetchServices() {
         <h3>Services Unavailable</h3>
       </div>
     `;
+    showToast(
+      "Backend not reachable. Ensure FastAPI is running.",
+      "error"
+    );
   }
 }
 
@@ -228,85 +159,38 @@ function renderServiceCards() {
     `;
 
     if (!isLocked) {
-      card.addEventListener("click", () => selectAgent({
-        agent_id: service.id,
-        name: service.name,
-        description: service.description,
-        price_usdc: service.price_usdc,
-        is_service: true
-      }));
+      card.addEventListener("click", () => selectService(service));
     }
     dom.servicesGrid.appendChild(card);
   });
 }
 
-function selectAgent(agent) {
-  state.selectedAgent = agent;
+function selectService(service) {
+  state.selectedService = service;
 
-  if (agent.is_service) {
-    const snippetSection = document.getElementById("global-snippet");
-    if (snippetSection) {
-      snippetSection.scrollIntoView({ behavior: "smooth", block: "center" });
+  const snippetSection = document.getElementById("global-snippet");
+  if (snippetSection) {
+    snippetSection.scrollIntoView({ behavior: "smooth", block: "center" });
 
-      // Optionally highlight it briefly
-      snippetSection.style.transition = "transform 0.3s ease";
-      snippetSection.style.transform = "scale(1.02)";
-      setTimeout(() => {
-        snippetSection.style.transform = "scale(1)";
-      }, 300);
-    }
-
-    showToast(`Services are API-only. See the integration snippet above!`, "info");
-  } else {
-    dom.selectedAgentName.textContent = agent.name;
-    dom.selectedAgentPrice.textContent = `$${agent.price_usdc.toFixed(2)} USDC`;
-
-    dom.agentInput.value = "";
-    dom.agentInput.placeholder = "Type your input here...";
-    dom.charCount.textContent = "0 chars";
-    dom.btnRunAgent.disabled = true;
-    dom.paymentStatus.className = "payment-status";
-    dom.paymentStatus.textContent = "";
-    dom.agentOutput.innerHTML = `
-      <div class="output-placeholder">
-        <div class="output-placeholder-icon">◈</div>
-        <p>Enter your input and click <strong>Run Agent</strong> to see results.</p>
-        <p style="font-size:0.8rem;color:var(--text-tertiary);">Ctrl+Enter to run</p>
-      </div>
-    `;
-
-    dom.serviceWorkspace.classList.add("hidden");
-    dom.workspace.classList.remove("hidden");
-    dom.workspace.scrollIntoView({ behavior: "smooth", block: "start" });
-    dom.agentInput.focus();
+    snippetSection.style.transition = "transform 0.3s ease";
+    snippetSection.style.transform = "scale(1.02)";
+    setTimeout(() => {
+      snippetSection.style.transform = "scale(1)";
+    }, 300);
   }
+
+  showToast(`Services are API-only. See the integration snippet above!`, "info");
 }
 
 function handleBackToServices() {
-  state.selectedAgent = null;
+  state.selectedService = null;
   dom.serviceWorkspace.classList.add("hidden");
   document.getElementById("services").scrollIntoView({ behavior: "smooth" });
 }
 
-function handleBackToAgents() {
-  state.selectedAgent = null;
-  dom.workspace.classList.add("hidden");
-  document.getElementById("agents").scrollIntoView({ behavior: "smooth" });
-}
-
-function handleInputChange() {
-  const len = dom.agentInput.value.length;
-  dom.charCount.textContent = `${len} chars`;
-  dom.btnRunAgent.disabled = len === 0 || state.isProcessing;
-}
-
 
 async function handleRunAction() {
-  if (state.selectedAgent?.is_service) {
-    await handleRunService();
-  } else {
-    await handleRunAgent();
-  }
+  await handleRunService();
 }
 
 async function runService(serviceId, inputData) {
@@ -353,115 +237,23 @@ async function runService(serviceId, inputData) {
 }
 
 async function handleRunService() {
-  if (!state.selectedAgent || state.isProcessing) return;
-
-  const inputText = dom.agentInput.value.trim();
-  if (!inputText) return;
+  if (!state.selectedService || state.isProcessing) return;
 
   if (!state.userId) {
     showToast("Please connect your wallet first to run this service.", "error");
     return;
   }
 
-  setProcessing(true);
+  state.isProcessing = true;
 
   try {
-    const result = await runService(state.selectedAgent.agent_id, inputText);
-    handleAgentResult(result);
+    const result = await runService(state.selectedService.id, "query");
+    handleServiceResult(result);
   } catch (err) {
     console.error("Run service error:", err);
     showToast(err.message || "Something went wrong.", "error");
-    dom.paymentStatus.className = "payment-status error";
-    dom.paymentStatus.textContent = "⚠ Error";
-    dom.agentOutput.innerHTML = `
-      <div class="output-placeholder">
-        <div class="output-placeholder-icon" style="opacity:0.5;">⚠</div>
-        <p style="color:var(--error);">${escapeHtml(err.message)}</p>
-      </div>
-    `;
   } finally {
-    setProcessing(false);
-  }
-}
-
-async function handleRunAgent() {
-  if (!state.selectedAgent || state.isProcessing) return;
-
-  const inputText = dom.agentInput.value.trim();
-  if (!inputText) return;
-
-  if (!state.userId) {
-    showToast("Please connect your wallet first to run this agent.", "error");
-    return;
-  }
-
-  setProcessing(true);
-
-  try {
-
-    const firstResp = await apiFetch("/run-agent", {
-      method: "POST",
-      body: JSON.stringify({
-        agent_id: state.selectedAgent.agent_id,
-        input_text: inputText,
-        user_id: state.userId,
-      }),
-    });
-
-    if (firstResp.status === 402) {
-
-      const challenge = await firstResp.json();
-      showToast(
-        `Payment required: $${challenge.price_usdc} USDC — signing authorization...`,
-        "info"
-      );
-
-
-
-
-      const authSignature = await signPaymentAuthorization(challenge);
-
-
-      const retryResp = await apiFetch("/run-agent", {
-        method: "POST",
-        headers: {
-          "X-Payment-Authorization": authSignature,
-        },
-        body: JSON.stringify({
-          agent_id: state.selectedAgent.agent_id,
-          input_text: inputText,
-          user_id: state.userId,
-        }),
-      });
-
-      if (!retryResp.ok) {
-        const errData = await retryResp.json().catch(() => ({}));
-        throw new Error(errData.detail || `Agent run failed (${retryResp.status})`);
-      }
-
-      const result = await retryResp.json();
-      handleAgentResult(result);
-    } else if (firstResp.ok) {
-
-      const result = await firstResp.json();
-      handleAgentResult(result);
-    } else {
-      const errData = await firstResp.json().catch(() => ({}));
-      throw new Error(errData.detail || `Request failed (${firstResp.status})`);
-    }
-  } catch (err) {
-    console.error("Run agent error:", err);
-    showToast(err.message || "Something went wrong.", "error");
-    dom.paymentStatus.className = "payment-status error";
-    dom.paymentStatus.textContent = "⚠ Error";
-    dom.agentOutput.innerHTML = `
-      <div class="output-placeholder">
-        <div class="output-placeholder-icon" style="opacity:0.5;">⚠</div>
-        <p style="color:var(--error);">${escapeHtml(err.message)}</p>
-      </div>
-    `;
-  } finally {
-    setProcessing(false);
+    state.isProcessing = false;
   }
 }
 
@@ -490,25 +282,18 @@ async function signPaymentAuthorization(challenge) {
   return JSON.stringify(demoAuth);
 }
 
-function handleAgentResult(result) {
-
-  dom.paymentStatus.className = "payment-status verified";
-  dom.paymentStatus.textContent = "✅ Payment Verified";
-
-
-  renderOutput(result.result);
-
+function handleServiceResult(result) {
 
   showToast(
-    "Agent completed — payment authorized!",
+    "Service completed — payment authorized!",
     "success"
   );
 
 
   addHistoryEntry({
-    agent: state.selectedAgent.name,
-    agentId: state.selectedAgent.agent_id,
-    cost: state.selectedAgent.price_usdc,
+    agent: state.selectedService.name,
+    agentId: state.selectedService.id,
+    cost: state.selectedService.price_usdc,
     status: "verified",
     txHash: result.payment_ref || "—",
     time: new Date().toISOString(),
@@ -518,44 +303,13 @@ function handleAgentResult(result) {
   if (state.wallet) {
     state.wallet.usdc_balance = Math.max(
       0,
-      state.wallet.usdc_balance - state.selectedAgent.price_usdc
+      state.wallet.usdc_balance - state.selectedService.price_usdc
     );
     updateWalletUI();
   }
 }
 
-function renderOutput(text) {
 
-  const pre = document.createElement("pre");
-  pre.textContent = text;
-
-  dom.agentOutput.innerHTML = "";
-  dom.agentOutput.appendChild(pre);
-
-
-  dom.agentOutput.style.animation = "fadeIn 0.4s ease both";
-  setTimeout(() => {
-    dom.agentOutput.style.animation = "";
-  }, 500);
-}
-
-function setProcessing(active) {
-  state.isProcessing = active;
-  const btnContent = dom.btnRunAgent.querySelector(".btn-content");
-  const btnLoading = dom.btnRunAgent.querySelector(".btn-loading");
-
-  if (active) {
-    btnContent.classList.add("hidden");
-    btnLoading.classList.remove("hidden");
-    dom.btnRunAgent.disabled = true;
-    dom.agentInput.disabled = true;
-  } else {
-    btnContent.classList.remove("hidden");
-    btnLoading.classList.add("hidden");
-    dom.btnRunAgent.disabled = dom.agentInput.value.length === 0;
-    dom.agentInput.disabled = false;
-  }
-}
 
 
 async function handleConnectWallet() {

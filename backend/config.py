@@ -24,25 +24,9 @@ GATEWAY_WALLET_ADDRESS: str = "0x0077777d7EBA4688BDeF3E311b846F25870A19B9"
 ARC_CHAIN_ID: int = int(os.getenv("ARC_CHAIN_ID", "201980"))
 
 
-# LLM
-NVIDIA_API_KEY: str = os.getenv("NVIDIA_API_KEY", "")
-
-# Which LLM backend to use: "nvidia"
-LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "nvidia")
-LLM_MODEL: str = os.getenv("LLM_MODEL", "meta/llama-3.1-8b-instruct")
-
-
 # Seller wallet (receives nanopayment authorizations)
 
 # This is the Circle wallet address for this marketplace (the "seller").
 # Set after running wallet.py:setup_seller_wallet() for the first time.
 SELLER_WALLET_ADDRESS: str = os.getenv("SELLER_WALLET_ADDRESS", "")
 SELLER_WALLET_ID: str = os.getenv("SELLER_WALLET_ID", "")
-
-
-# Per-agent pricing (in USDC)
-AGENT_PRICES: dict[str, float] = {
-    "summarizer": float(os.getenv("PRICE_SUMMARIZER", "0.05")),
-    "debugger":   float(os.getenv("PRICE_DEBUGGER",   "0.10")),
-    "researcher": float(os.getenv("PRICE_RESEARCHER",  "0.08")),
-}
