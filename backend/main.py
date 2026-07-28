@@ -1,8 +1,6 @@
 from __future__ import annotations
 import logging
 import sys
-from collections import defaultdict
-from datetime import datetime, timezone
 from pathlib import Path
 
 # Ensure the project root is on sys.path so `from backend import ...` works
@@ -12,12 +10,11 @@ if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
 import httpx
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
 
-from backend import payment, wallet
+from backend import payment, wallet, database
 from backend import services as service_module
 from backend.config import (
     CIRCLE_API_KEY,
@@ -43,6 +40,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 # FastAPI app
+database.init_db()
 app = FastAPI(
     title="Noviq — AI Services Marketplace",
     description=(
@@ -76,8 +74,6 @@ async def health() -> HealthResponse:
     )
 
 
-
-
 @app.get("/services", response_model=list[ServiceInfo], tags=["Services"])
 async def list_services() -> list[ServiceInfo]:
     return [
@@ -96,7 +92,6 @@ async def run_service(
     body: RunServiceRequest,
     x_payment_authorization: str | None = Header(default=None),
 ):
-
     if body.service_id not in service_module.SERVICE_REGISTRY:
         raise HTTPException(
             status_code=404,
@@ -127,6 +122,15 @@ async def run_service(
         logger.error("Service error: %s", exc)
         raise HTTPException(status_code=502, detail="Service returned an error.")
 
+    database.save_transaction(
+        user_id=body.user_id,
+        service_id=body.service_id,
+        service_name=service_def.name,
+        cost=service_def.price_usdc,
+        status="verified",
+        tx_hash=tx_hash,
+    )
+
     return {
         "service_id": body.service_id,
         "result": result,
@@ -135,14 +139,9 @@ async def run_service(
     }
 
 
-# In-memory transaction log (MVP — swap for a DB in production)
-_TX_LOG: dict[str, list[dict]] = defaultdict(list)
-
-
 @app.post("/run", tags=["Services"], response_model=None)
 async def run_simple(body: RunServiceRequest):
     """Simple one-call endpoint: handles wallet, payment, and service execution internally."""
-
     if not body.user_id:
         raise HTTPException(status_code=400, detail="user_id is required.")
 
@@ -167,15 +166,14 @@ async def run_simple(body: RunServiceRequest):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
-    # Log transaction
-    _TX_LOG[body.user_id].insert(0, {
-        "service": service_def.name,
-        "serviceId": body.service_id,
-        "cost": service_def.price_usdc,
-        "status": "verified",
-        "txHash": tx_hash,
-        "time": datetime.now(timezone.utc).isoformat(),
-    })
+    database.save_transaction(
+        user_id=body.user_id,
+        service_id=body.service_id,
+        service_name=service_def.name,
+        cost=service_def.price_usdc,
+        status="verified",
+        tx_hash=tx_hash,
+    )
 
     return {
         "service_id": body.service_id,
@@ -186,10 +184,9 @@ async def run_simple(body: RunServiceRequest):
 
 
 @app.get("/transactions/{user_id}", tags=["Services"])
-async def get_transactions(user_id: str):
-    """Returns transaction history for a user (from /run calls)."""
-    return _TX_LOG.get(user_id, [])
-
+async def get_user_transactions(user_id: str):
+    """Returns transaction history for a user."""
+    return database.get_transactions(user_id)
 
 
 @app.post("/wallet", response_model=WalletInfo, tags=["Wallets"])
@@ -265,8 +262,6 @@ async def handle_payment_flow(
             status_code=402,
             detail=str(exc),
         )
-
-
 
 
 # Serve frontend — GET-only routes so POST API endpoints are not intercepted.

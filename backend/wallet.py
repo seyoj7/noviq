@@ -17,6 +17,8 @@ from backend.config import (
 )
 from backend.models import WalletInfo
 
+from backend import database
+
 logger = logging.getLogger(__name__)
 
 
@@ -135,8 +137,8 @@ async def _get_wallet_info(wallet_id: str, user_id: str) -> WalletInfo:
 
 
 async def get_or_create_wallet(user_id: str) -> WalletInfo:
-    if user_id in _WALLET_STORE:
-        wallet_id = _WALLET_STORE[user_id]
+    wallet_id = database.get_wallet(user_id)
+    if wallet_id:
         try:
             return await get_wallet_balance(wallet_id, user_id)
         except httpx.HTTPError as exc:
@@ -154,18 +156,12 @@ async def get_or_create_wallet(user_id: str) -> WalletInfo:
             wallets = resp.json().get("data", {}).get("wallets", [])
             if wallets:
                 wallet_id = wallets[0]["id"]
-                _WALLET_STORE[user_id] = wallet_id
+                database.save_wallet(user_id, wallet_id)
                 return await get_wallet_balance(wallet_id, user_id)
 
     wallet = await create_wallet(user_id)
-    _WALLET_STORE[user_id] = wallet.wallet_id
+    database.save_wallet(user_id, wallet.wallet_id)
     return wallet
-
-
-# In-memory wallet store (MVP only — swap for a DB in production)
-
-# Maps user_id → wallet_id
-_WALLET_STORE: dict[str, str] = {}
 
 
 async def _get_entity_secret_ciphertext() -> str:
@@ -185,6 +181,7 @@ async def _get_entity_secret_ciphertext() -> str:
     cipher = PKCS1_OAEP.new(rsa_key, hashAlgo=SHA256, mgfunc=lambda x, y: PKCS1_OAEP.MGF1(x, y, SHA256))
     encrypted = cipher.encrypt(entity_secret_bytes)
     return base64.b64encode(encrypted).decode("utf-8")
+
 
 async def _get_or_create_wallet_set_id(ciphertext: str) -> str:
     async with httpx.AsyncClient(timeout=30.0) as client:

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Literal, Optional
+from typing import Literal
 from pydantic import BaseModel, Field
 
 
@@ -17,8 +17,8 @@ class RunServiceRequest(BaseModel):
 
     service_id: str = Field(..., description="ID of the service to run")
     input_data: str = Field(..., min_length=1, description="User-supplied data")
-    user_id: Optional[str] = Field(
-        None,
+    user_id: str | None = Field(
+        default=None,
         description="Caller's user ID — used to look up their Circle wallet for balance display",
     )
 

@@ -11,7 +11,8 @@ from backend.config import (
     USDC_ADDRESS,
 )
 from backend.models import PaymentChallenge
-from backend.wallet import _get_entity_secret_ciphertext, _WALLET_STORE, get_or_create_wallet
+from backend.wallet import _get_entity_secret_ciphertext, get_or_create_wallet
+from backend import database
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +61,7 @@ async def verify_authorization(auth_header: str, expected_amount_usdc: float) ->
 
 async def execute_payment(user_id: str, expected_amount_usdc: float) -> str:
     """Executes a real on-chain transaction using the custodial Circle Developer Wallet."""
-    wallet_id = _WALLET_STORE.get(user_id)
+    wallet_id = database.get_wallet(user_id)
     if not wallet_id:
         wallet_info = await get_or_create_wallet(user_id)
         wallet_id = wallet_info.wallet_id

@@ -12,7 +12,6 @@ const state = {
 
 
 const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => document.querySelectorAll(sel);
 
 const dom = {
   navbar: $("#navbar"),
@@ -187,9 +186,6 @@ function handleBackToServices() {
 }
 
 
-async function handleRunAction() {
-  await handleRunService();
-}
 
 async function runService(serviceId, inputData) {
   const firstResp = await apiFetch("/run-service", {
@@ -306,8 +302,6 @@ function handleServiceResult(result) {
     updateWalletUI();
   }
 }
-
-
 
 
 async function handleConnectWallet() {
@@ -521,7 +515,7 @@ function loadHistoryFromStorage() {
       state.history = [];
     }
 
-    // Also fetch server-side transactions (from /run API calls)
+    // Also fetch server-side transactions
     apiFetch(`/transactions/${state.userId}`)
       .then(r => r.ok ? r.json() : [])
       .then(serverTx => {
