@@ -517,14 +517,30 @@ function loadHistoryFromStorage() {
     const stored = localStorage.getItem("noviq_history_" + state.userId);
     if (stored) {
       state.history = JSON.parse(stored);
-      renderHistory();
     } else {
       state.history = [];
-      renderHistory();
     }
-  } catch {
 
+    // Also fetch server-side transactions (from /run API calls)
+    apiFetch(`/transactions/${state.userId}`)
+      .then(r => r.ok ? r.json() : [])
+      .then(serverTx => {
+        if (serverTx.length > 0) {
+          // Merge: add server transactions not already in local history (by txHash)
+          const existingHashes = new Set(state.history.map(h => h.txHash || h.paymentRef));
+          const newEntries = serverTx.filter(tx => !existingHashes.has(tx.txHash));
+          if (newEntries.length > 0) {
+            state.history = [...newEntries, ...state.history];
+            state.history.sort((a, b) => new Date(b.time) - new Date(a.time));
+            saveHistoryToStorage();
+          }
+        }
+        renderHistory();
+      })
+      .catch(() => renderHistory());
+  } catch {
     state.history = [];
+    renderHistory();
   }
 }
 

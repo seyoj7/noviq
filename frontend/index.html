@@ -132,18 +132,14 @@
       </div>
       <div class="code-snippet-body">
         <button class="code-snippet-copy"
-          onclick="navigator.clipboard.writeText('import requests\n\nurl = \&quot;http://localhost:8000/run-service\&quot;\nheaders = {\&quot;Content-Type\&quot;: \&quot;application/json\&quot;}\ndata = {\n    \&quot;service_id\&quot;: \&quot;token_price\&quot;,\n    \&quot;input_data\&quot;: \&quot;your_input\&quot;\n}\n\n# Add your X-Payment-Authorization header here after 402 challenge\nresponse = requests.post(url, json=data, headers=headers)\nprint(response.json())'); showToast('Snippet copied!', 'success');">Copy</button>
+          onclick="navigator.clipboard.writeText('import requests\n\nresponse = requests.post(\&quot;http://localhost:8000/run\&quot;, json={\n    \&quot;service_id\&quot;: \&quot;token_price\&quot;,\n    \&quot;input_data\&quot;: \&quot;bitcoin\&quot;,\n    \&quot;user_id\&quot;: \&quot;0xYOUR_WALLET_ADDRESS\&quot;\n})\nprint(response.json())'); showToast('Snippet copied!', 'success');">Copy</button>
         <pre><code><span class="syntax-keyword">import </span><span class="syntax-module">requests</span>
 
-<span class="syntax-variable">url</span> = <span class="syntax-string">"http://localhost:8000/run-service"</span>
-<span class="syntax-variable">headers</span> = {<span class="syntax-string">"Content-Type"</span>: <span class="syntax-string">"application/json"</span>}
-<span class="syntax-variable">data</span> = {
+<span class="syntax-variable">response</span> = <span class="syntax-module">requests</span>.post(<span class="syntax-string">"http://localhost:8000/run"</span>, json={
     <span class="syntax-string">"service_id"</span>: <span class="syntax-string">"token_price"</span>,
-    <span class="syntax-string">"input_data"</span>: <span class="syntax-string">"your_input"</span>
-}
-
-<span class="syntax-comment"># Add your X-Payment-Authorization header here after 402 challenge</span>
-<span class="syntax-variable">response</span> = <span class="syntax-module">requests</span>.post(url, json=data, headers=headers)
+    <span class="syntax-string">"input_data"</span>: <span class="syntax-string">"bitcoin"</span>,
+    <span class="syntax-string">"user_id"</span>: <span class="syntax-string">"0xYOUR_WALLET_ADDRESS"</span>
+})
 <span class="syntax-builtin">print</span>(response.json())</code></pre>
       </div>
     </div>

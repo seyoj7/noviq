@@ -1,6 +1,8 @@
 from __future__ import annotations
 import logging
 import sys
+from collections import defaultdict
+from datetime import datetime, timezone
 from pathlib import Path
 
 # Ensure the project root is on sys.path so `from backend import ...` works
@@ -131,6 +133,63 @@ async def run_service(
         "payment_ref": payment_ref,
         "authorization_status": "verified"
     }
+
+
+# In-memory transaction log (MVP — swap for a DB in production)
+_TX_LOG: dict[str, list[dict]] = defaultdict(list)
+
+
+@app.post("/run", tags=["Services"], response_model=None)
+async def run_simple(body: RunServiceRequest):
+    """Simple one-call endpoint: handles wallet, payment, and service execution internally."""
+
+    if not body.user_id:
+        raise HTTPException(status_code=400, detail="user_id is required.")
+
+    if body.service_id not in service_module.SERVICE_REGISTRY:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Unknown service_id '{body.service_id}'. "
+                   f"Valid options: {list(service_module.SERVICE_REGISTRY)}",
+        )
+
+    service_def = service_module.SERVICE_REGISTRY[body.service_id]
+
+    # Execute payment directly (wallet lookup + on-chain transfer)
+    try:
+        payment_ref = await payment.execute_payment(body.user_id, service_def.price_usdc)
+    except ValueError as exc:
+        raise HTTPException(status_code=402, detail=str(exc))
+
+    # Run the service
+    try:
+        result = await service_module.run_service(body.service_id, body.input_data)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    # Log transaction
+    _TX_LOG[body.user_id].insert(0, {
+        "agent": service_def.name,
+        "agentId": body.service_id,
+        "cost": service_def.price_usdc,
+        "status": "verified",
+        "txHash": payment_ref,
+        "time": datetime.now(timezone.utc).isoformat(),
+    })
+
+    return {
+        "service_id": body.service_id,
+        "result": result,
+        "price_usdc": service_def.price_usdc,
+        "payment_ref": payment_ref,
+    }
+
+
+@app.get("/transactions/{user_id}", tags=["Services"])
+async def get_transactions(user_id: str):
+    """Returns transaction history for a user (from /run calls)."""
+    return _TX_LOG.get(user_id, [])
+
 
 
 @app.post("/wallet", response_model=WalletInfo, tags=["Wallets"])
