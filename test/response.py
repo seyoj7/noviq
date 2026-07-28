@@ -6,4 +6,4 @@ response = requests.post("http://localhost:8000/run", json={
     "user_id": "0xdb819f7b4f275babbd19bcede38829d69143f660"
 })
 result = response.json()["result"]
-print(result.split("is ")[1].rstrip("."))
+print(response.json())

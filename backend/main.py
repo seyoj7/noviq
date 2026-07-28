@@ -117,7 +117,7 @@ async def run_service(
     if isinstance(payment_result, JSONResponse):
         return payment_result
         
-    payment_ref = payment_result
+    tx_hash = payment_result
 
     try:
         result = await service_module.run_service(body.service_id, body.input_data)
@@ -130,7 +130,7 @@ async def run_service(
     return {
         "service_id": body.service_id,
         "result": result,
-        "payment_ref": payment_ref,
+        "tx_hash": tx_hash,
         "authorization_status": "verified"
     }
 
@@ -157,7 +157,7 @@ async def run_simple(body: RunServiceRequest):
 
     # Execute payment directly (wallet lookup + on-chain transfer)
     try:
-        payment_ref = await payment.execute_payment(body.user_id, service_def.price_usdc)
+        tx_hash = await payment.execute_payment(body.user_id, service_def.price_usdc)
     except ValueError as exc:
         raise HTTPException(status_code=402, detail=str(exc))
 
@@ -169,11 +169,11 @@ async def run_simple(body: RunServiceRequest):
 
     # Log transaction
     _TX_LOG[body.user_id].insert(0, {
-        "agent": service_def.name,
-        "agentId": body.service_id,
+        "service": service_def.name,
+        "serviceId": body.service_id,
         "cost": service_def.price_usdc,
         "status": "verified",
-        "txHash": payment_ref,
+        "txHash": tx_hash,
         "time": datetime.now(timezone.utc).isoformat(),
     })
 
@@ -181,7 +181,7 @@ async def run_simple(body: RunServiceRequest):
         "service_id": body.service_id,
         "result": result,
         "price_usdc": service_def.price_usdc,
-        "payment_ref": payment_ref,
+        "tx_hash": tx_hash,
     }
 
 
@@ -239,7 +239,7 @@ async def handle_payment_flow(
         price_usdc,
     )
 
-    is_valid, payment_ref = await payment.verify_authorization(
+    is_valid, tx_hash = await payment.verify_authorization(
         auth_header=x_payment_authorization,
         expected_amount_usdc=price_usdc,
     )
@@ -247,7 +247,7 @@ async def handle_payment_flow(
     if not is_valid:
         raise HTTPException(
             status_code=402,
-            detail=f"Payment authorization invalid or insufficient: {payment_ref}",
+            detail=f"Payment authorization invalid or insufficient: {tx_hash}",
         )
         
     # Execute the actual on-chain transfer

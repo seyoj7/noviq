@@ -27,9 +27,9 @@ async def get_token_price(input_data: str) -> str:
             
             if token_id in data and "usd" in data[token_id]:
                 price = data[token_id]["usd"]
-                return f"The current price of {token_id} is ${price} USD."
+                return f"{price}"
             else:
-                return f"Error: Could not find price for token '{token_id}'. Ensure you are using the full CoinGecko ID (e.g. 'bitcoin' not 'btc')."
+                return f"Error: Could not find price for token '{token_id}'"
     except httpx.HTTPError as e:
         logger.error("CoinGecko API error: %s", e)
         return f"Error fetching price for '{token_id}'. Please try again later."
