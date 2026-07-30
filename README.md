@@ -1,6 +1,6 @@
 ## What is Noviq?
 
-Noviq is a **pay-per-request AI services marketplace** built on [Circle's Nanopayments](https://developers.circle.com/) and the [Arc testnet](https://arc-testnet.drpc.org). It lets users consume AI-powered services — like fetching live crypto prices, Twitter data, or YouTube metadata — paying fractions of a cent per request using **USDC**.
+Noviq is a **pay-per-request AI services marketplace** built on [Circle's Nanopayments](https://developers.circle.com/) and the [Arc testnet](https://arc-testnet.drpc.org). It lets users consume AI-powered services — like fetching live crypto prices or Twitter data — paying fractions of a cent per request using **USDC**.
 
 The payment flow follows the [x402 protocol](https://www.x402.org/): the server issues an HTTP `402 Payment Required` challenge, the client signs an off-chain EIP-3009 authorization, and the server verifies and settles the payment via Circle's Programmable Wallets — **all without gas fees for the end-user**.
 
@@ -42,9 +42,8 @@ The payment flow follows the [x402 protocol](https://www.x402.org/): the server 
 │  │          │  │          │  │  ┌────────────────┐    │  │
 │  │ Circle   │  │ x402     │  │  │ Token Price    │    │  │
 │  │ Wallets  │  │ Verify   │  │  │ Twitter Fetch  │    │  │
-│  │ API      │  │ + Settle │  │  │ YouTube Fetch  │    │  │
-│  └──────────┘  └──────────┘  │  └────────────────┘    │  │
-│                              └───────────────────────┘  │
+│  │ API      │  │ + Settle │  │  └────────────────┘    │  │
+│  └──────────┘  └──────────┘  └───────────────────────┘  │
 └─────────────────────────────────────────────────────────┘
         │                │
         ▼                ▼
@@ -189,10 +188,10 @@ Lists all available services and their per-request pricing.
     "price_usdc": 0.05
   },
   {
-    "id": "youtube_fetch",
-    "name": "📺 YouTube Fetch",
-    "description": "Fetches metadata and transcript for a YouTube video.",
-    "price_usdc": 0.08
+    "id": "llama-3.1-8b-instruct",
+    "name": "🧠 llama-3.1-8b-instruct",
+    "description": "Ask an advanced LLM any question.",
+    "price_usdc": 0.10
   }
 ]
 ```
@@ -302,7 +301,7 @@ Client                          Server                    Circle / Arc
 |---------|-----|-------------|-------------|
 | 📈 Token Price | `token_price` | $0.02 | Live crypto price via CoinGecko |
 | 🐦 Twitter Fetch | `twitter_fetch` | $0.05 | Recent tweets by keyword/handle |
-| 📺 YouTube Fetch | `youtube_fetch` | $0.08 | Video metadata & transcript |
+| 🧠 llama-3.1-8b-instruct | `llama-3.1-8b-instruct` | $0.10 | Ask an advanced LLM any question. |
 
 ### Adding a New Service
 

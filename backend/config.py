@@ -30,3 +30,8 @@ ARC_CHAIN_ID: int = int(os.getenv("ARC_CHAIN_ID", "201980"))
 # Set after running wallet.py:setup_seller_wallet() for the first time.
 SELLER_WALLET_ADDRESS: str = os.getenv("SELLER_WALLET_ADDRESS", "")
 SELLER_WALLET_ID: str = os.getenv("SELLER_WALLET_ID", "")
+
+# LLM Keys
+NVIDIA_API_KEY: str = os.getenv("NVIDIA_API_KEY", "")
+
+# No Twitter API keys needed - using free public instances

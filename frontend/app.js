@@ -132,7 +132,7 @@ function renderServiceCards() {
   dom.servicesGrid.innerHTML = "";
 
   state.services.forEach((service, index) => {
-    const isLocked = service.id === "twitter_fetch" || service.id === "youtube_fetch";
+    const isLocked = false;
     const card = document.createElement("div");
     card.className = "agent-card service-card";
     if (isLocked) {

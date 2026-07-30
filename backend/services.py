@@ -2,15 +2,81 @@ from __future__ import annotations
 import logging
 import httpx
 from typing import Any, Callable, Coroutine
+from bs4 import BeautifulSoup
+from backend.config import NVIDIA_API_KEY
 
 logger = logging.getLogger(__name__)
 
 # Service functions (mock implementations)
 async def fetch_twitter(input_data: str) -> str:
-    return f"Mock Twitter data for: {input_data}"
+    handle = input_data.strip().lstrip('@')
+    if not handle:
+        return "Error: Please provide a valid Twitter handle."
+        
+    # Using a free public Nitter instance (xcancel.com) that works on Vercel
+    url = f"https://xcancel.com/{handle}"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.get(url, headers=headers)
+            
+            # xcancel might return 404 if the user doesn't exist
+            if resp.status_code == 404:
+                return f"Error: User @{handle} not found."
+            resp.raise_for_status()
+            
+            soup = BeautifulSoup(resp.text, 'html.parser')
+            tweets = []
+            
+            # Find all tweet containers, limit to 5
+            for item in soup.find_all('div', class_='tweet-body')[:5]:
+                content = item.find('div', class_='tweet-content')
+                if content:
+                    tweets.append(content.get_text(strip=True))
+                    
+            if not tweets:
+                return f"No recent tweets found for @{handle} (or the profile is protected)."
+                
+            formatted = f"Recent tweets from @{handle}:\n\n"
+            for t in tweets:
+                formatted += f"{t}\n\n---\n\n"
+                
+            return formatted.strip("\n- ")
+            
+    except httpx.HTTPError as e:
+        logger.error("Scraper error: %s", e)
+        return f"Error fetching Twitter data. The public proxy might be down. Try again later."
 
-async def fetch_youtube(input_data: str) -> str:
-    return f"Mock YouTube metadata and transcript for: {input_data}"
+async def ask_llm(input_data: str) -> str:
+    if not NVIDIA_API_KEY:
+        return "Error: NVIDIA_API_KEY is not configured."
+    
+    url = "https://integrate.api.nvidia.com/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {NVIDIA_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "meta/llama-3.1-8b-instruct",
+        "messages": [
+            {"role": "user", "content": input_data}
+        ],
+        "max_tokens": 512,
+        "temperature": 0.7
+    }
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(url, headers=headers, json=payload)
+            resp.raise_for_status()
+            data = resp.json()
+            return data["choices"][0]["message"]["content"]
+    except httpx.HTTPError as e:
+        logger.error("LLM API error: %s", e)
+        return f"Error communicating with LLM API. Please try again later."
 
 async def get_token_price(input_data: str) -> str:
     token_id = input_data.strip().lower()
@@ -67,12 +133,12 @@ SERVICE_REGISTRY: dict[str, ServiceDefinition] = {
         price_usdc=0.05,
         fn=fetch_twitter,
     ),
-    "youtube_fetch": ServiceDefinition(
-        id="youtube_fetch",
-        name="📺 YouTube Fetch",
-        description="Fetches metadata and transcript for a YouTube video.",
-        price_usdc=0.08,
-        fn=fetch_youtube,
+    "llama-3.1-8b-instruct": ServiceDefinition(
+        id="llama-3.1-8b-instruct",
+        name="🧠 llama-3.1-8b",
+        description="Ask this LLM any question.",
+        price_usdc=0.10,
+        fn=ask_llm,
     ),
 }
 

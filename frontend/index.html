@@ -31,7 +31,7 @@
       <span class="brand-text">noviq</span>
     </div>
     <div class="navbar-links">
-      <a href="#how-it-works">Architecture</a>
+      <a href="#how-it-works">Workflow</a>
       <a href="#services">Services</a>
       <a href="#global-snippet">API</a>
     </div>
@@ -66,10 +66,12 @@
     <div class="hero-actions">
       <button class="btn btn-primary btn-lg" id="btn-get-started">
         Explore Services
+        <svg class="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
       </button>
-      <a href="https://github.com/circlefin/arc-nanopayments" target="_blank" class="btn btn-outline btn-lg">
-        View on GitHub ↗
-      </a>
     </div>
     <div class="hero-tech-stack">
       ARC <span>·</span> CIRCLE <span>·</span> USDC <span>·</span> NANOPAYMENTS
@@ -79,26 +81,70 @@
 
   <section id="how-it-works" class="section section-how">
     <div class="section-header">
-      <span class="eyebrow">ARCHITECTURE</span>
+      <span class="eyebrow">WORKFLOW</span>
       <h2 class="section-title">How it works</h2>
-      <p class="section-subtitle">A seamless journey from wallet connection to service execution.</p>
+      <p class="section-subtitle">From wallet connection to instant result — five steps, zero friction.</p>
     </div>
     <div class="features-grid">
-      <div class="feature-card glass-panel" data-step="1">
-        <div class="feature-icon">🔑</div>
-        <h3 class="feature-title">01. Connect</h3>
-        <p class="feature-desc">A wallet is instantly created for you — no seed phrases, no extensions, no friction.</p>
+      <div class="feature-card" data-step="1">
+        <div class="feature-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 7V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v3"></path>
+          </svg>
+        </div>
+        <span class="feature-title">CONNECT</span>
+        <p class="feature-desc">Connect your EVM wallet</p>
       </div>
-      <div class="feature-card glass-panel" data-step="2">
-        <div class="feature-icon">✍️</div>
-        <h3 class="feature-title">02. Sign</h3>
-        <p class="feature-desc">Authorize a micro-payment with a single off-chain signature. Zero gas, sub-second.</p>
+
+      <div class="feature-card" data-step="2">
+        <div class="feature-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+        </div>
+        <span class="feature-title">FUND</span>
+        <p class="feature-desc">Get testnet USDC faucet</p>
       </div>
-      <div class="feature-card glass-panel" data-step="3">
-        <div class="feature-icon">⚡</div>
-        <h3 class="feature-title">03. Run</h3>
-        <p class="feature-desc">Your service executes immediately. Settlement happens in a batch later - you don't wait.
-        </p>
+
+      <div class="feature-card" data-step="3">
+        <div class="feature-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+            <line x1="6" y1="6" x2="6.01" y2="6"></line>
+            <line x1="6" y1="18" x2="6.01" y2="18"></line>
+          </svg>
+        </div>
+        <span class="feature-title">REQUEST</span>
+        <p class="feature-desc">Choose a service and provide input data.</p>
+      </div>
+
+      <div class="feature-card" data-step="4">
+        <div class="feature-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <path d="m9 12 2 2 4-4"></path>
+          </svg>
+        </div>
+        <span class="feature-title">SIGN</span>
+        <p class="feature-desc">Authorize gasless nanopayments</p>
+      </div>
+
+      <div class="feature-card" data-step="5">
+        <div class="feature-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
+        <span class="feature-title">EXECUTE</span>
+        <p class="feature-desc">Receive instant results as payment settles.</p>
       </div>
     </div>
   </section>
