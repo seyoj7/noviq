@@ -145,6 +145,7 @@ h4 {
 .section-services {
   padding-top: var(--space-3xl);
 }
+
 .section-services::after {
   display: none;
 }
@@ -589,7 +590,7 @@ h4 {
 .features-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: var(--space-lg);
+  gap: 64px;
   position: relative;
 }
 
@@ -609,7 +610,6 @@ h4 {
   position: relative;
   z-index: 1;
   width: 100%;
-  min-height: 150px;
   padding: 16px 12px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-light);

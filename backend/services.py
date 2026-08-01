@@ -136,7 +136,7 @@ SERVICE_REGISTRY: dict[str, ServiceDefinition] = {
     "llama-3.1-8b-instruct": ServiceDefinition(
         id="llama-3.1-8b-instruct",
         name="🧠 llama-3.1-8b",
-        description="Ask this LLM any question.",
+        description="LLM model for advanced reasoning and text generation.",
         price_usdc=0.10,
         fn=ask_llm,
     ),

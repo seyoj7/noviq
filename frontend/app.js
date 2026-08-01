@@ -35,10 +35,22 @@ const dom = {
   historyEmpty: $("#history-empty"),
 
   toastContainer: $("#toast-container"),
+  btnCopySnippet: $("#btn-copy-snippet"),
 };
 
 
 document.addEventListener("DOMContentLoaded", () => {
+  if (dom.btnCopySnippet) {
+    dom.btnCopySnippet.addEventListener("click", () => {
+      const serviceId = document.getElementById("snippet-service-id")?.textContent || '"token_price"';
+      const inputData = document.getElementById("snippet-input-data")?.textContent || '"bitcoin"';
+      
+      const textToCopy = `import requests\n\nresponse = requests.post("http://localhost:8000/run", json={\n    "service_id": ${serviceId},\n    "input_data": ${inputData},\n    "user_id": "0xYOUR_WALLET_ADDRESS"\n})\nprint(response.json()["result"])`;
+      navigator.clipboard.writeText(textToCopy);
+      showToast('Snippet copied!', 'success');
+    });
+  }
+
   const savedWallet = localStorage.getItem("noviq_wallet");
   if (savedWallet) {
     try {
@@ -144,7 +156,7 @@ function renderServiceCards() {
     card.dataset.serviceId = service.id;
 
     const nameText = service.name;
-    const ctaText = isLocked ? "🔒 Coming Soon" : "Run Service →";
+    const ctaText = isLocked ? "🔒 Coming Soon" : "API Integration →";
 
     card.innerHTML = `
       <div class="agent-card-header">
@@ -178,7 +190,15 @@ function selectService(service) {
     }, 300);
   }
 
-  showToast(`Services are API-only. See the integration snippet above!`, "info");
+  const serviceIdSpan = document.getElementById("snippet-service-id");
+  const inputDataSpan = document.getElementById("snippet-input-data");
+  let exampleInput = "example_data";
+  if (service.id === "token_price") exampleInput = "bitcoin";
+  else if (service.id === "twitter_fetch") exampleInput = "elonmusk";
+  else if (service.id === "llama-3.1-8b-instruct") exampleInput = "What is the capital of France?";
+  
+  if (serviceIdSpan) serviceIdSpan.textContent = `"${service.id}"`;
+  if (inputDataSpan) inputDataSpan.textContent = `"${exampleInput}"`;
 }
 
 function handleBackToServices() {

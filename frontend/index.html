@@ -106,7 +106,7 @@
   <section id="how-it-works" class="section section-how">
     <div class="section-header">
       <h2 class="section-title">Workflow</h2>
-      <p class="section-subtitle">From wallet connection to instant result — five steps, zero friction.</p>
+      <p class="section-subtitle">From wallet connection to instant result. Five steps, Zero friction.</p>
     </div>
     <div class="features-grid">
       <div class="feature-card" data-step="1">
@@ -200,16 +200,15 @@
         <div class="code-snippet-lang">Python API Integration</div>
       </div>
       <div class="code-snippet-body">
-        <button class="code-snippet-copy"
-          onclick="navigator.clipboard.writeText('import requests\n\nresponse = requests.post(\&quot;http://localhost:8000/run\&quot;, json={\n    \&quot;service_id\&quot;: \&quot;token_price\&quot;,\n    \&quot;input_data\&quot;: \&quot;bitcoin\&quot;,\n    \&quot;user_id\&quot;: \&quot;0xYOUR_WALLET_ADDRESS\&quot;\n})\nprint(response.json())'); showToast('Snippet copied!', 'success');">Copy</button>
+        <button class="code-snippet-copy" id="btn-copy-snippet">Copy</button>
         <pre><code><span class="syntax-keyword">import </span><span class="syntax-module">requests</span>
 
 <span class="syntax-variable">response</span> = <span class="syntax-module">requests</span>.post(<span class="syntax-string">"http://localhost:8000/run"</span>, json={
-    <span class="syntax-string">"service_id"</span>: <span class="syntax-string">"token_price"</span>,
-    <span class="syntax-string">"input_data"</span>: <span class="syntax-string">"bitcoin"</span>,
+    <span class="syntax-string">"service_id"</span>: <span class="syntax-string" id="snippet-service-id">"token_price"</span>,
+    <span class="syntax-string">"input_data"</span>: <span class="syntax-string" id="snippet-input-data">"bitcoin"</span>,
     <span class="syntax-string">"user_id"</span>: <span class="syntax-string">"0xYOUR_WALLET_ADDRESS"</span>
 })
-<span class="syntax-builtin">print</span>(response.json())</code></pre>
+<span class="syntax-builtin">print</span>(response.json()[<span class="syntax-string">"result"</span>])</code></pre>
       </div>
     </div>
   </section>
