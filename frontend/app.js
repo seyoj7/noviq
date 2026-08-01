@@ -86,8 +86,10 @@ function initScrollEffects() {
   window.addEventListener("scroll", () => {
     if (window.scrollY > 40) {
       dom.navbar.classList.add("scrolled");
+      document.body.classList.add("page-scrolled");
     } else {
       dom.navbar.classList.remove("scrolled");
+      document.body.classList.remove("page-scrolled");
     }
   });
 }
@@ -330,6 +332,7 @@ async function handleConnectWallet() {
 
     state.wallet = await resp.json();
     localStorage.setItem("noviq_wallet", JSON.stringify(state.wallet));
+
     updateWalletUI();
     loadHistoryFromStorage();
     showToast("Wallet connected!", "success");
@@ -426,6 +429,7 @@ function handleDisconnectWallet() {
   state.wallet = null;
   localStorage.removeItem("noviq_wallet");
 
+
   dom.navbarWallet.innerHTML = `<button class="btn btn-primary btn-sm" id="btn-connect-wallet">Connect Wallet</button>`;
   dom.btnConnect = document.getElementById("btn-connect-wallet");
   dom.btnConnect.addEventListener("click", handleConnectWallet);
@@ -494,48 +498,23 @@ function renderHistory() {
 }
 
 function saveHistoryToStorage() {
-  try {
-    if (!state.userId) return;
-    localStorage.setItem(
-      "noviq_history_" + state.userId,
-      JSON.stringify(state.history.slice(0, 50))
-    );
-  } catch {
-
-  }
+  // No-op: localStorage removed
 }
 
 function loadHistoryFromStorage() {
-  try {
-    if (!state.userId) return;
-    const stored = localStorage.getItem("noviq_history_" + state.userId);
-    if (stored) {
-      state.history = JSON.parse(stored);
-    } else {
-      state.history = [];
-    }
+  if (!state.userId) return;
+  state.history = [];
 
-    // Also fetch server-side transactions
-    apiFetch(`/transactions/${state.userId}`)
-      .then(r => r.ok ? r.json() : [])
-      .then(serverTx => {
-        if (serverTx.length > 0) {
-          // Merge: add server transactions not already in local history (by txHash)
-          const existingHashes = new Set(state.history.map(h => h.txHash || h.paymentRef));
-          const newEntries = serverTx.filter(tx => !existingHashes.has(tx.txHash));
-          if (newEntries.length > 0) {
-            state.history = [...newEntries, ...state.history];
-            state.history.sort((a, b) => new Date(b.time) - new Date(a.time));
-            saveHistoryToStorage();
-          }
-        }
-        renderHistory();
-      })
-      .catch(() => renderHistory());
-  } catch {
-    state.history = [];
-    renderHistory();
-  }
+  // Fetch transactions from server only
+  apiFetch(`/transactions/${state.userId}`)
+    .then(r => r.ok ? r.json() : [])
+    .then(serverTx => {
+      if (serverTx.length > 0) {
+        state.history = serverTx.sort((a, b) => new Date(b.time) - new Date(a.time));
+      }
+      renderHistory();
+    })
+    .catch(() => renderHistory());
 }
 
 

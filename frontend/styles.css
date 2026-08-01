@@ -41,6 +41,11 @@
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
+}
+
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -109,7 +114,7 @@ h4 {
 .glass-panel {
   background: var(--bg-secondary);
   border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
+  border-radius: 4px;
   position: relative;
   overflow: hidden;
 }
@@ -118,6 +123,18 @@ h4 {
   padding: var(--space-4xl) var(--space-xl);
   max-width: var(--max-width);
   margin: 0 auto;
+  position: relative;
+}
+
+.section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 1px;
+  background-color: var(--border-light);
 }
 
 .section-how {
@@ -128,10 +145,116 @@ h4 {
 .section-services {
   padding-top: var(--space-3xl);
 }
+.section-services::after {
+  display: none;
+}
 
 .section-snippet {
   padding-top: 0;
   padding-bottom: var(--space-xl);
+}
+
+.section-manifesto {
+  padding: var(--space-4xl) var(--space-xl);
+  background: transparent;
+}
+
+.section-manifesto::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 1px;
+  background-color: var(--border-light);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.page-scrolled .section-manifesto::before {
+  opacity: 1;
+}
+
+.manifesto-container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 4fr 6fr;
+  gap: 5rem;
+  align-items: center;
+}
+
+.manifesto-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.strikethrough-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.strikethrough-list li {
+  font-family: var(--font-sans);
+  font-size: 2.25rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.35);
+  text-decoration: line-through;
+  text-decoration-color: rgba(255, 255, 255, 0.25);
+  text-decoration-thickness: 2px;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.manifesto-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.manifesto-headline {
+  font-family: var(--font-sans);
+  font-size: 2.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--text-primary);
+}
+
+.manifesto-paragraph {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  max-width: 620px;
+}
+
+.manifesto-tagline {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--accent-primary);
+  letter-spacing: 0.03em;
+  font-weight: 500;
+}
+
+@media (max-width: 900px) {
+  .manifesto-container {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .strikethrough-list li {
+    font-size: 1.75rem;
+  }
+
+  .manifesto-headline {
+    font-size: 2.15rem;
+  }
 }
 
 .section-history {
@@ -466,20 +589,16 @@ h4 {
 .features-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 24px;
+  gap: var(--space-lg);
   position: relative;
-  max-width: 1000px;
-  margin: 0 auto;
-  align-items: center;
-  justify-items: center;
 }
 
 .features-grid::before {
   content: '';
   position: absolute;
   top: 50%;
-  left: 65px;
-  right: 65px;
+  left: 10%;
+  right: 10%;
   height: 1px;
   border-top: 2px dashed rgba(255, 255, 255, 0.15);
   z-index: 0;
@@ -490,7 +609,6 @@ h4 {
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 185px;
   min-height: 150px;
   padding: 16px 12px;
   background: var(--bg-secondary);
@@ -601,19 +719,21 @@ h4 {
 }
 
 .agent-card {
+  width: 100%;
+  padding: var(--space-xl);
   background: var(--bg-secondary);
   border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  padding: var(--space-xl);
+  border-radius: 4px;
   display: flex;
   flex-direction: column;
-  transition: transform var(--transition-fast), border-color var(--transition-fast);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
   cursor: pointer;
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.6);
 }
 
 .agent-card:hover {
-  border-color: var(--text-secondary);
-  transform: translateY(-2px);
+  background: var(--bg-tertiary);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .agent-card-header {
@@ -624,22 +744,24 @@ h4 {
 }
 
 .agent-name {
+  font-family: var(--font-mono);
   font-size: 1.25rem;
   font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
 }
 
 .agent-price {
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  background: var(--bg-tertiary);
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
+  background: transparent;
   color: var(--accent-primary);
 }
 
 .agent-desc {
-  color: var(--text-secondary);
   font-size: 0.95rem;
+  color: var(--text-tertiary);
+  line-height: 1.4;
   margin-bottom: var(--space-xl);
   flex: 1;
 }
@@ -649,10 +771,11 @@ h4 {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-md);
 }
 
 .agent-card-cta {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   gap: var(--space-xs);
@@ -682,9 +805,9 @@ h4 {
 
 /* API Snippet Panel */
 .code-snippet-panel {
-  background: #1e1e1e;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  border: 1px solid var(--border-light);
   overflow: hidden;
   font-family: var(--font-mono);
   font-size: 0.9rem;
@@ -964,6 +1087,7 @@ h4 {
 
 .history-table-wrapper {
   overflow-x: auto;
+  margin: 0 auto;
 }
 
 .history-table {

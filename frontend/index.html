@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@1,400;1,600&display=swap"
     rel="stylesheet" />
 
   <link rel="stylesheet" href="styles.css" />
@@ -32,8 +32,8 @@
     </div>
     <div class="navbar-links">
       <a href="#how-it-works">Workflow</a>
-      <a href="#services">Services</a>
-      <a href="#global-snippet">API</a>
+      <a href="#services">API</a>
+      <a href="#history">Logs</a>
     </div>
     <div class="navbar-controls">
       <a href="https://faucet.circle.com/" target="_blank" class="btn btn-secondary btn-sm" id="btn-faucet"
@@ -56,12 +56,12 @@
       pay-per-request for APIs
     </div>
     <h1 class="hero-title">
-      The Payment Layer<br />
-      for AI & APIs
+      Stop Paying for<br />
+      API Subscriptions
     </h1>
     <p class="hero-subtitle">
-      Run AI services for fractions of a cent. No subscriptions, no gas fees -
-      just sign an off-chain authorization and get instant results on Arc.
+      APIs priced in fractions of a cent. No subscriptions, no gas fees —
+      sign once, get results instantly, settled on Arc.
     </p>
     <div class="hero-actions">
       <button class="btn btn-primary btn-lg" id="btn-get-started">
@@ -79,10 +79,33 @@
   </header>
 
 
+  <section id="manifesto" class="section section-manifesto">
+    <div class="manifesto-container">
+      <div class="manifesto-left">
+        <ul class="strikethrough-list">
+          <li>sign ups</li>
+          <li>credit cards</li>
+          <li>api keys</li>
+          <li>subscriptions</li>
+          <li>passwords</li>
+        </ul>
+      </div>
+      <div class="manifesto-right">
+        <h2 class="manifesto-headline">Agents need APIs, not paywalls.</h2>
+        <p class="manifesto-paragraph">
+          Modern AI is autonomous, but the web is stuck on manual logins and monthly subscriptions. Noviq lets your
+          agents bypass sign-ups entirely. They just sign a transaction, pay a fraction of a cent in USDC, and get
+          instant access.
+        </p>
+        <div class="manifesto-tagline">Code that pays for itself.</div>
+      </div>
+    </div>
+  </section>
+
+
   <section id="how-it-works" class="section section-how">
     <div class="section-header">
-      <span class="eyebrow">WORKFLOW</span>
-      <h2 class="section-title">How it works</h2>
+      <h2 class="section-title">Workflow</h2>
       <p class="section-subtitle">From wallet connection to instant result — five steps, zero friction.</p>
     </div>
     <div class="features-grid">
@@ -155,7 +178,7 @@
 
   <section id="services" class="section section-services">
     <div class="section-header">
-      <h2 class="section-title">Choose a Service</h2>
+      <h2 class="section-title">Choose a API Service</h2>
       <p class="section-subtitle">Data integrations and utilities. Priced per request in USDC.</p>
     </div>
     <div class="agents-grid" id="services-grid">
@@ -212,7 +235,6 @@
 
   <section id="history" class="section section-history hidden">
     <div class="section-header">
-      <span class="eyebrow">logs</span>
       <h2 class="section-title">Transaction History</h2>
       <p class="section-subtitle">Your recent agent runs and payment authorizations.</p>
     </div>
