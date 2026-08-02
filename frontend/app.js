@@ -1,6 +1,5 @@
 const API_BASE = "http://localhost:8000";
 
-
 const state = {
   userId: null,
   wallet: null,
@@ -9,7 +8,6 @@ const state = {
   isProcessing: false,
   history: [],
 };
-
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -36,114 +34,141 @@ const dom = {
 
   toastContainer: $("#toast-container"),
   btnCopySnippet: $("#btn-copy-snippet"),
+
+  snippetPython: $("#snippet-python"),
+  snippetNode: $("#snippet-node"),
+  snippetServiceId: $("#snippet-service-id"),
+  snippetInputData: $("#snippet-input-data"),
+  snippetServiceIdNode: $("#snippet-service-id-node"),
+  snippetInputDataNode: $("#snippet-input-data-node"),
+  snippetTabsContainer: $(".code-snippet-tabs"),
 };
 
+document.addEventListener("DOMContentLoaded", init);
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (dom.btnCopySnippet) {
-    dom.btnCopySnippet.addEventListener("click", () => {
-      const activeTab = document.querySelector('.snippet-tab.active')?.dataset.target || 'python';
-      let textToCopy = '';
-      
-      if (activeTab === 'python') {
-        const serviceId = document.getElementById("snippet-service-id")?.textContent || '"token_price"';
-        const inputData = document.getElementById("snippet-input-data")?.textContent || '"bitcoin"';
-        textToCopy = `import requests\n\nresponse = requests.post("http://localhost:8000/run", json={\n    "service_id": ${serviceId},\n    "input_data": ${inputData},\n    "user_id": "0xYOUR_WALLET_ADDRESS"\n})\nprint(response.json()["result"])`;
-      } else {
-        const serviceId = document.getElementById("snippet-service-id-node")?.textContent || '"token_price"';
-        const inputData = document.getElementById("snippet-input-data-node")?.textContent || '"bitcoin"';
-        textToCopy = `const response = await fetch("http://localhost:8000/run", {\n    method: "POST",\n    headers: { "Content-Type": "application/json" },\n    body: JSON.stringify({\n        "service_id": ${serviceId},\n        "input_data": ${inputData},\n        "user_id": "0xYOUR_WALLET_ADDRESS"\n    })\n});\nconst data = await response.json();\nconsole.log(data.result);`;
-      }
-      
-      navigator.clipboard.writeText(textToCopy);
-      showToast(`${activeTab === 'python' ? 'Python' : 'Node.js'} snippet copied!`, 'success');
-    });
-  }
-
-  const snippetTabs = document.querySelectorAll('.snippet-tab');
-  const pythonSnippet = document.getElementById('snippet-python');
-  const nodeSnippet = document.getElementById('snippet-node');
-
-  snippetTabs.forEach(tab => {
-    tab.addEventListener('click', (e) => {
-      snippetTabs.forEach(t => t.classList.remove('active'));
-      const currentTab = e.target;
-      currentTab.classList.add('active');
-
-      if (currentTab.dataset.target === 'python') {
-        pythonSnippet.classList.remove('hidden');
-        nodeSnippet.classList.add('hidden');
-      } else {
-        pythonSnippet.classList.add('hidden');
-        nodeSnippet.classList.remove('hidden');
-      }
-    });
-  });
-
-  const savedWallet = localStorage.getItem("noviq_wallet");
-  if (savedWallet) {
-    try {
-      state.wallet = JSON.parse(savedWallet);
-      state.userId = state.wallet.user_id;
-      updateWalletUI();
-      loadHistoryFromStorage();
-
-      apiFetch("/wallet", {
-        method: "POST",
-        body: JSON.stringify({ user_id: state.userId }),
-      }).then(r => r.json()).then(w => {
-        state.wallet = w;
-        localStorage.setItem("noviq_wallet", JSON.stringify(w));
-      }).catch(e => console.error("Silent wallet refresh failed", e));
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
+function init() {
+  initSnippetPanel();
+  restoreWalletSession();
   bindEvents();
   fetchServices();
-  if (!savedWallet) renderHistory();
-  initScrollEffects();
-});
 
+  if (!localStorage.getItem("noviq_wallet")) {
+    renderHistory();
+  }
+
+  initScrollEffects();
+}
+
+function initSnippetPanel() {
+  if (dom.btnCopySnippet) {
+    dom.btnCopySnippet.addEventListener("click", handleCopySnippet);
+  }
+
+  if (dom.snippetTabsContainer) {
+    dom.snippetTabsContainer.addEventListener("click", handleSnippetTabClick);
+  }
+}
+
+function restoreWalletSession() {
+  const savedWallet = localStorage.getItem("noviq_wallet");
+  if (!savedWallet) return;
+
+  try {
+    state.wallet = JSON.parse(savedWallet);
+    state.userId = state.wallet.user_id;
+    updateWalletUI();
+    loadHistoryFromStorage();
+
+    apiFetch("/wallet", {
+      method: "POST",
+      body: JSON.stringify({ user_id: state.userId }),
+    })
+      .then((r) => r.json())
+      .then((w) => {
+        state.wallet = w;
+        localStorage.setItem("noviq_wallet", JSON.stringify(w));
+      })
+      .catch((e) => console.error("Silent wallet refresh failed", e));
+  } catch (e) {
+    console.error(e);
+  }
+}
 
 function bindEvents() {
-
   dom.btnConnect.addEventListener("click", handleConnectWallet);
   dom.btnGetStarted.addEventListener("click", () => {
     document.getElementById("services").scrollIntoView({ behavior: "smooth" });
   });
-
-
   dom.btnBackToServices.addEventListener("click", handleBackToServices);
-
-
   dom.btnDisconnectWallet.addEventListener("click", handleDisconnectWallet);
   dom.walletBackdrop.addEventListener("click", closeWalletPanel);
 }
 
 function initScrollEffects() {
+  let ticking = false;
 
-  window.addEventListener("scroll", () => {
-    if (window.scrollY > 40) {
-      dom.navbar.classList.add("scrolled");
-      document.body.classList.add("page-scrolled");
-    } else {
-      dom.navbar.classList.remove("scrolled");
-      document.body.classList.remove("page-scrolled");
-    }
-  });
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (ticking) return;
+      ticking = true;
+
+      requestAnimationFrame(() => {
+        const scrolled = window.scrollY > 40;
+        dom.navbar.classList.toggle("scrolled", scrolled);
+        document.body.classList.toggle("page-scrolled", scrolled);
+        ticking = false;
+      });
+    },
+    { passive: true }
+  );
 }
 
+function handleSnippetTabClick(e) {
+  const tab = e.target.closest(".snippet-tab");
+  if (!tab) return;
+
+  dom.snippetTabsContainer
+    .querySelectorAll(".snippet-tab")
+    .forEach((t) => t.classList.remove("active"));
+  tab.classList.add("active");
+
+  const isPython = tab.dataset.target === "python";
+  dom.snippetPython.classList.toggle("hidden", !isPython);
+  dom.snippetNode.classList.toggle("hidden", isPython);
+}
+
+function handleCopySnippet() {
+  const activeTab =
+    document.querySelector(".snippet-tab.active")?.dataset.target || "python";
+
+  const serviceId =
+    activeTab === "python"
+      ? dom.snippetServiceId?.textContent || '"token_price"'
+      : dom.snippetServiceIdNode?.textContent || '"token_price"';
+  const inputData =
+    activeTab === "python"
+      ? dom.snippetInputData?.textContent || '"bitcoin"'
+      : dom.snippetInputDataNode?.textContent || '"bitcoin"';
+
+  const textToCopy =
+    activeTab === "python"
+      ? `import requests\n\nresponse = requests.post("http://localhost:8000/run", json={\n    "service_id": ${serviceId},\n    "input_data": ${inputData},\n    "user_id": "0xYOUR_WALLET_ADDRESS"\n})\nprint(response.json()["result"])`
+      : `const response = await fetch("http://localhost:8000/run", {\n    method: "POST",\n    headers: { "Content-Type": "application/json" },\n    body: JSON.stringify({\n        "service_id": ${serviceId},\n        "input_data": ${inputData},\n        "user_id": "0xYOUR_WALLET_ADDRESS"\n    })\n});\nconst data = await response.json();\nconsole.log(data.result);`;
+
+  navigator.clipboard.writeText(textToCopy);
+  showToast(
+    `${activeTab === "python" ? "Python" : "Node.js"} snippet copied!`,
+    "success"
+  );
+}
 
 async function apiFetch(path, options = {}) {
-  const url = `${API_BASE}${path}`;
   const { headers: customHeaders, ...restOptions } = options;
-  const resp = await fetch(url, {
+  return fetch(`${API_BASE}${path}`, {
     ...restOptions,
     headers: { "Content-Type": "application/json", ...customHeaders },
   });
-  return resp;
 }
 
 async function fetchServices() {
@@ -164,10 +189,7 @@ async function fetchServices() {
         <h3>Services Unavailable</h3>
       </div>
     `;
-    showToast(
-      "Server not reachable",
-      "error"
-    );
+    showToast("Server not reachable", "error");
   }
 }
 
@@ -175,35 +197,37 @@ function renderServiceCards() {
   dom.servicesGrid.innerHTML = "";
 
   state.services.forEach((service, index) => {
-    const isLocked = false;
     const card = document.createElement("div");
     card.className = "agent-card service-card";
-    if (isLocked) {
-      card.classList.add('agent-card--locked');
-    }
     card.style.animationDelay = `${index * 0.1}s`;
     card.dataset.serviceId = service.id;
 
-    const nameText = service.name;
-    const ctaText = isLocked ? "🔒 Coming Soon" : "API Integration →";
+    const priceFormatted =
+      service.price_usdc < 0.01
+        ? service.price_usdc.toFixed(3)
+        : service.price_usdc.toFixed(2);
 
     card.innerHTML = `
       <div class="agent-card-header">
-        <span class="agent-card-name">${escapeHtml(nameText)}</span>
-        <span class="agent-card-price agent-card-price--accent">$${service.price_usdc < 0.01 ? service.price_usdc.toFixed(3) : service.price_usdc.toFixed(2)} USDC</span>
+        <span class="agent-card-name">${escapeHtml(service.name)}</span>
+        <span class="agent-card-price agent-card-price--accent">$${priceFormatted} USDC</span>
       </div>
       <p class="agent-card-desc">${escapeHtml(service.description)}</p>
       <div class="agent-card-footer">
-        <span class="agent-card-cta">${ctaText}</span>
+        <span class="agent-card-cta">API Integration →</span>
       </div>
     `;
 
-    if (!isLocked) {
-      card.addEventListener("click", () => selectService(service));
-    }
+    card.addEventListener("click", () => selectService(service));
     dom.servicesGrid.appendChild(card);
   });
 }
+
+const EXAMPLE_INPUTS = {
+  token_price: "bitcoin",
+  twitter_fetch: "elonmusk",
+  "llama-3.1-8b-instruct": "What is the capital of France?",
+};
 
 function selectService(service) {
   state.selectedService = service;
@@ -213,20 +237,20 @@ function selectService(service) {
     snippetSection.scrollIntoView({ block: "center" });
   }
 
-  const serviceIdSpan = document.getElementById("snippet-service-id");
-  const inputDataSpan = document.getElementById("snippet-input-data");
-  const serviceIdSpanNode = document.getElementById("snippet-service-id-node");
-  const inputDataSpanNode = document.getElementById("snippet-input-data-node");
-  
-  let exampleInput = "example_data";
-  if (service.id === "token_price") exampleInput = "bitcoin";
-  else if (service.id === "twitter_fetch") exampleInput = "elonmusk";
-  else if (service.id === "llama-3.1-8b-instruct") exampleInput = "What is the capital of France?";
-  
-  if (serviceIdSpan) serviceIdSpan.textContent = `"${service.id}"`;
-  if (inputDataSpan) inputDataSpan.textContent = `"${exampleInput}"`;
-  if (serviceIdSpanNode) serviceIdSpanNode.textContent = `"${service.id}"`;
-  if (inputDataSpanNode) inputDataSpanNode.textContent = `"${exampleInput}"`;
+  const exampleInput = EXAMPLE_INPUTS[service.id] || "example_data";
+
+  updateSnippetValues(service.id, exampleInput);
+}
+
+function updateSnippetValues(serviceId, exampleInput) {
+  const idText = `"${serviceId}"`;
+  const inputText = `"${exampleInput}"`;
+
+  if (dom.snippetServiceId) dom.snippetServiceId.textContent = idText;
+  if (dom.snippetInputData) dom.snippetInputData.textContent = inputText;
+  if (dom.snippetServiceIdNode) dom.snippetServiceIdNode.textContent = idText;
+  if (dom.snippetInputDataNode)
+    dom.snippetInputDataNode.textContent = inputText;
 }
 
 function handleBackToServices() {
@@ -235,16 +259,16 @@ function handleBackToServices() {
   document.getElementById("services").scrollIntoView({ behavior: "smooth" });
 }
 
-
-
 async function runService(serviceId, inputData) {
+  const body = JSON.stringify({
+    service_id: serviceId,
+    input_data: inputData,
+    user_id: state.userId,
+  });
+
   const firstResp = await apiFetch("/run-service", {
     method: "POST",
-    body: JSON.stringify({
-      service_id: serviceId,
-      input_data: inputData,
-      user_id: state.userId,
-    }),
+    body,
   });
 
   if (firstResp.status === 402) {
@@ -257,34 +281,35 @@ async function runService(serviceId, inputData) {
 
     const retryResp = await apiFetch("/run-service", {
       method: "POST",
-      headers: {
-        "X-Payment-Authorization": authSignature,
-      },
-      body: JSON.stringify({
-        service_id: serviceId,
-        input_data: inputData,
-        user_id: state.userId,
-      }),
+      headers: { "X-Payment-Authorization": authSignature },
+      body,
     });
 
     if (!retryResp.ok) {
       const errData = await retryResp.json().catch(() => ({}));
-      throw new Error(errData.detail || `Service run failed (${retryResp.status})`);
+      throw new Error(
+        errData.detail || `Service run failed (${retryResp.status})`
+      );
     }
-    return await retryResp.json();
-  } else if (firstResp.ok) {
-    return await firstResp.json();
-  } else {
-    const errData = await firstResp.json().catch(() => ({}));
-    throw new Error(errData.detail || `Request failed (${firstResp.status})`);
+    return retryResp.json();
   }
+
+  if (firstResp.ok) {
+    return firstResp.json();
+  }
+
+  const errData = await firstResp.json().catch(() => ({}));
+  throw new Error(errData.detail || `Request failed (${firstResp.status})`);
 }
 
 async function handleRunService() {
   if (!state.selectedService || state.isProcessing) return;
 
   if (!state.userId) {
-    showToast("Please connect your wallet first to run this service.", "error");
+    showToast(
+      "Please connect your wallet first to run this service.",
+      "error"
+    );
     return;
   }
 
@@ -301,11 +326,8 @@ async function handleRunService() {
   }
 }
 
-
 async function signPaymentAuthorization(challenge) {
-
   await sleep(600);
-
 
   const demoAuth = {
     scheme: "x402",
@@ -313,7 +335,9 @@ async function signPaymentAuthorization(challenge) {
     payload: {
       signature: "0x" + "ab".repeat(65),
       authorization: {
-        from: state.wallet?.address || "0xDEMO0000000000000000000000000000000000000000",
+        from:
+          state.wallet?.address ||
+          "0xDEMO0000000000000000000000000000000000000000",
         to: challenge.seller_address,
         value: String(challenge.price_usdc_atomic),
         validAfter: "0",
@@ -327,12 +351,7 @@ async function signPaymentAuthorization(challenge) {
 }
 
 function handleServiceResult(result) {
-
-  showToast(
-    "Service completed — payment authorized!",
-    "success"
-  );
-
+  showToast("Service completed — payment authorized!", "success");
 
   addHistoryEntry({
     agent: state.selectedService.name,
@@ -343,7 +362,6 @@ function handleServiceResult(result) {
     time: new Date().toISOString(),
   });
 
-
   if (state.wallet) {
     state.wallet.usdc_balance = Math.max(
       0,
@@ -353,10 +371,12 @@ function handleServiceResult(result) {
   }
 }
 
-
 async function handleConnectWallet() {
-  if (typeof window.ethereum === 'undefined') {
-    showToast("Please install MetaMask (or an EVM wallet) to connect.", "error");
+  if (typeof window.ethereum === "undefined") {
+    showToast(
+      "Please install MetaMask (or an EVM wallet) to connect.",
+      "error"
+    );
     return;
   }
 
@@ -364,18 +384,19 @@ async function handleConnectWallet() {
   dom.btnConnect.textContent = "Connecting...";
 
   try {
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const accounts = await window.ethereum.request({
+      method: "eth_requestAccounts",
+    });
     if (!accounts || accounts.length === 0) {
       throw new Error("No accounts found.");
     }
-    const evmAddress = accounts[0];
-    state.userId = evmAddress;
+
+    state.userId = accounts[0];
 
     const resp = await apiFetch("/wallet", {
       method: "POST",
       body: JSON.stringify({ user_id: state.userId }),
     });
-
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
     state.wallet = await resp.json();
@@ -387,8 +408,11 @@ async function handleConnectWallet() {
     openWalletPanel();
   } catch (err) {
     console.error("Wallet connect error:", err);
-    if (err.code === -32002 || err.message.includes('already pending')) {
-      showToast("MetaMask is already open. Please click the MetaMask extension icon in your browser toolbar to continue.", "warning");
+    if (err.code === -32002 || err.message.includes("already pending")) {
+      showToast(
+        "MetaMask is already open. Please click the MetaMask extension icon in your browser toolbar to continue.",
+        "warning"
+      );
     } else {
       showToast(err.message || "Failed to connect wallet.", "error");
     }
@@ -411,12 +435,10 @@ function updateWalletUI() {
     </div>
   `;
 
-
   const btnFaucet = document.getElementById("btn-faucet");
   if (btnFaucet) {
     btnFaucet.href = `https://faucet.circle.com/?address=${state.wallet.address}`;
   }
-
 
   const addressChip = document.getElementById("nav-wallet-address");
   if (addressChip) addressChip.addEventListener("click", openWalletPanel);
@@ -425,33 +447,19 @@ function updateWalletUI() {
 function openWalletPanel() {
   if (!state.wallet) return;
 
-  const copyableRow = (val, displayVal, lbl) => `
-    <div class="wallet-detail-value-wrapper" onclick="navigator.clipboard.writeText('${escapeJsString(val)}'); showToast('${escapeJsString(lbl)} copied!', 'success');">
-      <span class="wallet-detail-value" title="${val}">${displayVal}</span>
-      <svg class="wallet-detail-copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-      </svg>
-    </div>
-  `;
+  const balanceFormatted =
+    state.wallet.usdc_balance > 0 && state.wallet.usdc_balance < 0.01
+      ? state.wallet.usdc_balance.toFixed(3)
+      : state.wallet.usdc_balance.toFixed(2);
 
   dom.walletPanelBody.innerHTML = `
     <div class="wallet-balance-display">
-      <div class="wallet-balance-amount">$${state.wallet.usdc_balance > 0 && state.wallet.usdc_balance < 0.01 ? state.wallet.usdc_balance.toFixed(3) : state.wallet.usdc_balance.toFixed(2)}</div>
+      <div class="wallet-balance-amount">$${balanceFormatted}</div>
       <div class="wallet-balance-currency">USDC on Arc Testnet</div>
     </div>
-    <div class="wallet-detail">
-      <span class="wallet-detail-label">Circle Address</span>
-      ${copyableRow(state.wallet.address, truncateAddress(state.wallet.address), 'Circle Address')}
-    </div>
-    <div class="wallet-detail">
-      <span class="wallet-detail-label">Wallet ID</span>
-      ${copyableRow(state.wallet.wallet_id, truncateAddress(state.wallet.wallet_id), 'Wallet ID')}
-    </div>
-    <div class="wallet-detail">
-      <span class="wallet-detail-label">EVM Address</span>
-      ${copyableRow(state.wallet.user_id, truncateAddress(state.wallet.user_id), 'EVM Address')}
-    </div>
+    ${walletDetailRow("Circle Address", state.wallet.address)}
+    ${walletDetailRow("Wallet ID", state.wallet.wallet_id)}
+    ${walletDetailRow("EVM Address", state.wallet.user_id)}
     <div class="wallet-detail">
       <span class="wallet-detail-label">Network</span>
       <div class="wallet-detail-value-wrapper wallet-detail-value-wrapper--static">
@@ -468,6 +476,22 @@ function openWalletPanel() {
   dom.walletPanel.classList.add("open");
 }
 
+function walletDetailRow(label, value) {
+  const display = truncateAddress(value);
+  return `
+    <div class="wallet-detail">
+      <span class="wallet-detail-label">${label}</span>
+      <div class="wallet-detail-value-wrapper" onclick="navigator.clipboard.writeText('${escapeJsString(value)}'); showToast('${escapeJsString(label)} copied!', 'success');">
+        <span class="wallet-detail-value" title="${value}">${display}</span>
+        <svg class="wallet-detail-copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </div>
+    </div>
+  `;
+}
+
 function closeWalletPanel() {
   dom.walletPanel.classList.remove("open");
 }
@@ -477,14 +501,12 @@ function handleDisconnectWallet() {
   state.wallet = null;
   localStorage.removeItem("noviq_wallet");
 
-
   dom.navbarWallet.innerHTML = `<button class="btn btn-primary btn-sm" id="btn-connect-wallet">Connect Wallet</button>`;
   dom.btnConnect = document.getElementById("btn-connect-wallet");
   dom.btnConnect.addEventListener("click", handleConnectWallet);
 
   showToast("Wallet disconnected", "info");
 }
-
 
 function addHistoryEntry(entry) {
   state.history.unshift(entry);
@@ -505,21 +527,18 @@ function renderHistory() {
 
   dom.historyTbody.innerHTML = state.history
     .map((entry) => {
-      let statusLabel = "Done";
-      let statusClass = "done";
-      let statusIcon = "✅";
-      if (entry.status === "failed") {
-        statusLabel = "Failed";
-        statusClass = "failed";
-        statusIcon = "❌";
-      }
+      const isFailed = entry.status === "failed";
+      const statusLabel = isFailed ? "Failed" : "Done";
+      const statusClass = isFailed ? "failed" : "done";
+      const statusIcon = isFailed ? "❌" : "✅";
+      const txRef = entry.txHash || entry.paymentRef;
 
-      const time = new Date(entry.time).toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        second: '2-digit',
+      const time = new Date(entry.time).toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
         hour12: true,
-        timeZone: 'Asia/Kolkata'
+        timeZone: "Asia/Kolkata",
       });
 
       return `
@@ -530,10 +549,10 @@ function renderHistory() {
           <td><span class="status-badge ${statusClass}">${statusIcon} ${statusLabel}</span></td>
           <td>
             <div class="history-tx-wrapper">
-              <a href="https://testnet.arcscan.app/tx/${entry.txHash || entry.paymentRef}" target="_blank" rel="noopener noreferrer" class="ref-mono history-tx-link">
-                ${truncateRef(entry.txHash || entry.paymentRef)}
+              <a href="https://testnet.arcscan.app/tx/${txRef}" target="_blank" rel="noopener noreferrer" class="ref-mono history-tx-link">
+                ${truncateRef(txRef)}
               </a>
-              <svg class="history-tx-copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" onclick="navigator.clipboard.writeText('${escapeJsString(entry.txHash || entry.paymentRef)}'); showToast('Tx Hash copied!', 'success');" title="Copy to clipboard">
+              <svg class="history-tx-copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" onclick="navigator.clipboard.writeText('${escapeJsString(txRef)}'); showToast('Tx Hash copied!', 'success');" title="Copy to clipboard">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
               </svg>
@@ -546,32 +565,30 @@ function renderHistory() {
 }
 
 function saveHistoryToStorage() {
-  // No-op: localStorage removed
 }
 
 function loadHistoryFromStorage() {
   if (!state.userId) return;
   state.history = [];
 
-  // Fetch transactions from server only
   apiFetch(`/transactions/${state.userId}`)
-    .then(r => r.ok ? r.json() : [])
-    .then(serverTx => {
+    .then((r) => (r.ok ? r.json() : []))
+    .then((serverTx) => {
       if (serverTx.length > 0) {
-        state.history = serverTx.sort((a, b) => new Date(b.time) - new Date(a.time));
+        state.history = serverTx.sort(
+          (a, b) => new Date(b.time) - new Date(a.time)
+        );
       }
       renderHistory();
     })
     .catch(() => renderHistory());
 }
 
-
 function showToast(message, type = "info") {
   const toast = document.createElement("div");
   toast.className = `toast toast-${type}`;
   toast.textContent = message;
   dom.toastContainer.appendChild(toast);
-
 
   setTimeout(() => {
     toast.classList.add("removing");
@@ -580,15 +597,15 @@ function showToast(message, type = "info") {
 }
 window.showToast = showToast;
 
+const _escapeEl = document.createElement("span");
 
 function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
+  _escapeEl.textContent = str;
+  return _escapeEl.innerHTML;
 }
 
 function escapeJsString(str) {
-  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  return String(str).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
 
 function truncateAddress(addr) {
