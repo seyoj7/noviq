@@ -1,36 +1,44 @@
 import sqlite3
-from pathlib import Path
 from datetime import datetime, timezone
 
-DB_PATH = Path(__file__).resolve().parent.parent / "data" / "noviq.db"
+# Use in-memory SQLite for serverless (Vercel) compatibility.
+# Data resets on cold starts, but wallet lookups fall back to Circle's API.
+_conn: sqlite3.Connection | None = None
 
 def get_db() -> sqlite3.Connection:
-    """Returns a SQLite connection."""
-    conn = sqlite3.connect(DB_PATH, timeout=10.0, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    return conn
+    """Returns a singleton in-memory SQLite connection."""
+    global _conn
+    if _conn is None:
+        _conn = sqlite3.connect(":memory:", check_same_thread=False)
+        _conn.row_factory = sqlite3.Row
+        # Auto-initialize tables on first connection
+        _create_tables(_conn)
+    return _conn
+
+def _create_tables(conn: sqlite3.Connection):
+    """Creates database tables if they don't exist."""
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS wallets (
+            user_id TEXT PRIMARY KEY,
+            wallet_id TEXT NOT NULL
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            service_id TEXT NOT NULL,
+            service_name TEXT NOT NULL,
+            cost REAL NOT NULL,
+            status TEXT NOT NULL,
+            tx_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
 
 def init_db():
-    """Initializes database tables."""
-    with get_db() as conn:
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS wallets (
-                user_id TEXT PRIMARY KEY,
-                wallet_id TEXT NOT NULL
-            )
-        """)
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS transactions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id TEXT NOT NULL,
-                service_id TEXT NOT NULL,
-                service_name TEXT NOT NULL,
-                cost REAL NOT NULL,
-                status TEXT NOT NULL,
-                tx_hash TEXT NOT NULL,
-                created_at TEXT NOT NULL
-            )
-        """)
+    """Initializes the database. Safe to call multiple times."""
+    get_db()
 
 # --- Wallet Operations ---
 

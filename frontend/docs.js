@@ -38,7 +38,7 @@ function initCopyCode() {
         const originalText = btn.textContent;
         btn.textContent = "Copied!";
         btn.style.color = "var(--success)";
-        
+
         setTimeout(() => {
           btn.textContent = originalText;
           btn.style.color = "";
@@ -65,11 +65,11 @@ function initScrollSpy() {
         document.querySelectorAll(".docs-toc-link, .docs-nav-link").forEach(link => {
           link.classList.remove("active");
         });
-        
+
         // Highlight active link in both sidebars
         const tocLink = document.querySelector(`.docs-toc-link[href="#${id}"]`);
         const navLink = document.querySelector(`.docs-nav-link[href="#${id}"]`);
-        
+
         if (tocLink) tocLink.classList.add("active");
         if (navLink) navLink.classList.add("active");
       }

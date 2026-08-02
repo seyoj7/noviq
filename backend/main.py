@@ -11,7 +11,7 @@ if _PROJECT_ROOT not in sys.path:
 import httpx
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 
 from backend import payment, wallet, database
 from backend import services as service_module
@@ -59,7 +59,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-_FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 
 
 # Routes
@@ -262,25 +261,4 @@ async def handle_payment_flow(
             detail=str(exc),
         )
 
-
-# Serve frontend — GET-only routes so POST API endpoints are not intercepted.
-# These must come AFTER all API routes.
-@app.get("/", include_in_schema=False)
-async def serve_index():
-    return FileResponse(str(_FRONTEND_DIR / "index.html"))
-
-
-@app.get("/{filepath:path}", include_in_schema=False)
-async def serve_frontend_files(filepath: str):
-    file = _FRONTEND_DIR / filepath
-    if file.is_file():
-        return FileResponse(str(file))
-    # Fallback to index.html for unknown paths (SPA-style)
-    return FileResponse(str(_FRONTEND_DIR / "index.html"))
-
-
-# Direct execution: python backend/main.py
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+

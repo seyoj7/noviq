@@ -207,14 +207,14 @@
         <button class="code-snippet-copy" id="btn-copy-snippet">Copy</button>
         <pre id="snippet-python"><code><span class="syntax-keyword">import </span><span class="syntax-module">requests</span>
 
-<span class="syntax-variable">response</span> = <span class="syntax-module">requests</span>.post(<span class="syntax-string">"http://localhost:8000/run"</span>, json={
+<span class="syntax-variable">response</span> = <span class="syntax-module">requests</span>.post(<span class="syntax-string">"https://YOUR_DOMAIN/run"</span>, json={
     <span class="syntax-string">"service_id"</span>: <span class="syntax-string" id="snippet-service-id">"token_price"</span>,
     <span class="syntax-string">"input_data"</span>: <span class="syntax-string" id="snippet-input-data">"bitcoin"</span>,
     <span class="syntax-string">"user_id"</span>: <span class="syntax-string">"0xYOUR_WALLET_ADDRESS"</span>
 })
 <span class="syntax-builtin">print</span>(response.json()[<span class="syntax-string">"result"</span>])</code></pre>
 
-        <pre id="snippet-node" class="hidden"><code><span class="syntax-keyword">const</span> response = <span class="syntax-keyword">await</span> <span class="syntax-builtin">fetch</span>(<span class="syntax-string">"http://localhost:8000/run"</span>, {
+        <pre id="snippet-node" class="hidden"><code><span class="syntax-keyword">const</span> response = <span class="syntax-keyword">await</span> <span class="syntax-builtin">fetch</span>(<span class="syntax-string">"https://YOUR_DOMAIN/run"</span>, {
     method: <span class="syntax-string">"POST"</span>,
     headers: { <span class="syntax-string">"Content-Type"</span>: <span class="syntax-string">"application/json"</span> },
     body: <span class="syntax-builtin">JSON</span>.stringify({
