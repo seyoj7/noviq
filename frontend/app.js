@@ -232,11 +232,6 @@ const EXAMPLE_INPUTS = {
 function selectService(service) {
   state.selectedService = service;
 
-  const snippetSection = document.getElementById("global-snippet");
-  if (snippetSection) {
-    snippetSection.scrollIntoView({ block: "center" });
-  }
-
   const exampleInput = EXAMPLE_INPUTS[service.id] || "example_data";
 
   updateSnippetValues(service.id, exampleInput);

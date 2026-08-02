@@ -1216,8 +1216,8 @@ h4 {
 
 .footer-tags {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
   grid-column: 2;
   justify-self: center;
   text-align: center;
