@@ -1110,7 +1110,7 @@ h4 {
 
 .history-table-wrapper {
   margin: 0 auto;
-  border-radius: var(--radius-lg);
+  border-radius: 4px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
