@@ -1,7 +1,10 @@
-/.env
+.env
 __pycache__/
 /backend/scripts
 /data
 .vscode
 .vercel
 node_modules
+.vercel
+.env*
+/dev.py
