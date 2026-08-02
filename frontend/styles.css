@@ -135,14 +135,10 @@ h4 {
 
 .section-how {
   padding-bottom: var(--space-3xl);
-  content-visibility: auto;
-  contain-intrinsic-size: auto 600px;
 }
 
 .section-services {
   padding-top: var(--space-3xl);
-  content-visibility: auto;
-  contain-intrinsic-size: auto 500px;
 }
 
 .section-services::after {
