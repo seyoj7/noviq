@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 from datetime import datetime, timezone
 
-DB_PATH = Path(__file__).resolve().parent.parent / "noviq.db"
+DB_PATH = Path(__file__).resolve().parent.parent / "data" / "noviq.db"
 
 def get_db() -> sqlite3.Connection:
     """Returns a SQLite connection."""

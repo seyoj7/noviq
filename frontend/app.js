@@ -136,7 +136,7 @@ async function fetchServices() {
       </div>
     `;
     showToast(
-      "Backend not reachable. Ensure FastAPI is running.",
+      "Server not reachable",
       "error"
     );
   }
@@ -161,7 +161,7 @@ function renderServiceCards() {
     card.innerHTML = `
       <div class="agent-card-header">
         <span class="agent-card-name">${escapeHtml(nameText)}</span>
-        <span class="agent-card-price agent-card-price--accent">$${service.price_usdc.toFixed(2)} USDC</span>
+        <span class="agent-card-price agent-card-price--accent">$${service.price_usdc < 0.01 ? service.price_usdc.toFixed(3) : service.price_usdc.toFixed(2)} USDC</span>
       </div>
       <p class="agent-card-desc">${escapeHtml(service.description)}</p>
       <div class="agent-card-footer">
@@ -409,7 +409,7 @@ function openWalletPanel() {
 
   dom.walletPanelBody.innerHTML = `
     <div class="wallet-balance-display">
-      <div class="wallet-balance-amount">$${state.wallet.usdc_balance.toFixed(2)}</div>
+      <div class="wallet-balance-amount">$${state.wallet.usdc_balance > 0 && state.wallet.usdc_balance < 0.01 ? state.wallet.usdc_balance.toFixed(3) : state.wallet.usdc_balance.toFixed(2)}</div>
       <div class="wallet-balance-currency">USDC on Arc Testnet</div>
     </div>
     <div class="wallet-detail">

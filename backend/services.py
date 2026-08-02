@@ -123,7 +123,7 @@ SERVICE_REGISTRY: dict[str, ServiceDefinition] = {
         id="token_price",
         name="📈 Token Price",
         description="Gets the current price for a given cryptocurrency token.",
-        price_usdc=0.02,
+        price_usdc=0.001,
         fn=get_token_price,
     ),
     "twitter_fetch": ServiceDefinition(
