@@ -42,14 +42,43 @@ const dom = {
 document.addEventListener("DOMContentLoaded", () => {
   if (dom.btnCopySnippet) {
     dom.btnCopySnippet.addEventListener("click", () => {
-      const serviceId = document.getElementById("snippet-service-id")?.textContent || '"token_price"';
-      const inputData = document.getElementById("snippet-input-data")?.textContent || '"bitcoin"';
+      const activeTab = document.querySelector('.snippet-tab.active')?.dataset.target || 'python';
+      let textToCopy = '';
       
-      const textToCopy = `import requests\n\nresponse = requests.post("http://localhost:8000/run", json={\n    "service_id": ${serviceId},\n    "input_data": ${inputData},\n    "user_id": "0xYOUR_WALLET_ADDRESS"\n})\nprint(response.json()["result"])`;
+      if (activeTab === 'python') {
+        const serviceId = document.getElementById("snippet-service-id")?.textContent || '"token_price"';
+        const inputData = document.getElementById("snippet-input-data")?.textContent || '"bitcoin"';
+        textToCopy = `import requests\n\nresponse = requests.post("http://localhost:8000/run", json={\n    "service_id": ${serviceId},\n    "input_data": ${inputData},\n    "user_id": "0xYOUR_WALLET_ADDRESS"\n})\nprint(response.json()["result"])`;
+      } else {
+        const serviceId = document.getElementById("snippet-service-id-node")?.textContent || '"token_price"';
+        const inputData = document.getElementById("snippet-input-data-node")?.textContent || '"bitcoin"';
+        textToCopy = `const response = await fetch("http://localhost:8000/run", {\n    method: "POST",\n    headers: { "Content-Type": "application/json" },\n    body: JSON.stringify({\n        "service_id": ${serviceId},\n        "input_data": ${inputData},\n        "user_id": "0xYOUR_WALLET_ADDRESS"\n    })\n});\nconst data = await response.json();\nconsole.log(data.result);`;
+      }
+      
       navigator.clipboard.writeText(textToCopy);
-      showToast('Snippet copied!', 'success');
+      showToast(`${activeTab === 'python' ? 'Python' : 'Node.js'} snippet copied!`, 'success');
     });
   }
+
+  const snippetTabs = document.querySelectorAll('.snippet-tab');
+  const pythonSnippet = document.getElementById('snippet-python');
+  const nodeSnippet = document.getElementById('snippet-node');
+
+  snippetTabs.forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      snippetTabs.forEach(t => t.classList.remove('active'));
+      const currentTab = e.target;
+      currentTab.classList.add('active');
+
+      if (currentTab.dataset.target === 'python') {
+        pythonSnippet.classList.remove('hidden');
+        nodeSnippet.classList.add('hidden');
+      } else {
+        pythonSnippet.classList.add('hidden');
+        nodeSnippet.classList.remove('hidden');
+      }
+    });
+  });
 
   const savedWallet = localStorage.getItem("noviq_wallet");
   if (savedWallet) {
@@ -181,17 +210,14 @@ function selectService(service) {
 
   const snippetSection = document.getElementById("global-snippet");
   if (snippetSection) {
-    snippetSection.scrollIntoView({ behavior: "smooth", block: "center" });
-
-    snippetSection.style.transition = "transform 0.3s ease";
-    snippetSection.style.transform = "scale(1.02)";
-    setTimeout(() => {
-      snippetSection.style.transform = "scale(1)";
-    }, 300);
+    snippetSection.scrollIntoView({ block: "center" });
   }
 
   const serviceIdSpan = document.getElementById("snippet-service-id");
   const inputDataSpan = document.getElementById("snippet-input-data");
+  const serviceIdSpanNode = document.getElementById("snippet-service-id-node");
+  const inputDataSpanNode = document.getElementById("snippet-input-data-node");
+  
   let exampleInput = "example_data";
   if (service.id === "token_price") exampleInput = "bitcoin";
   else if (service.id === "twitter_fetch") exampleInput = "elonmusk";
@@ -199,6 +225,8 @@ function selectService(service) {
   
   if (serviceIdSpan) serviceIdSpan.textContent = `"${service.id}"`;
   if (inputDataSpan) inputDataSpan.textContent = `"${exampleInput}"`;
+  if (serviceIdSpanNode) serviceIdSpanNode.textContent = `"${service.id}"`;
+  if (inputDataSpanNode) inputDataSpanNode.textContent = `"${exampleInput}"`;
 }
 
 function handleBackToServices() {
