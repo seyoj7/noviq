@@ -109,8 +109,8 @@ async def execute_payment(user_id: str, expected_amount_usdc: float) -> str:
 
         tx_id = resp.json()["data"]["id"]
 
-        for _ in range(45):
-            await asyncio.sleep(2)
+        for _ in range(30):
+            await asyncio.sleep(1)
             try:
                 poll_resp = await client.get(
                     f"https://api.circle.com/v1/w3s/transactions/{tx_id}",
