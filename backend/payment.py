@@ -80,7 +80,7 @@ async def execute_payment(user_id: str, expected_amount_usdc: float) -> str:
         "Content-Type": "application/json"
     }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=60.0) as client:
         resp = await client.post(
             f"https://api.circle.com/v1/w3s/developer/transactions/contractExecution",
             headers=headers,
@@ -109,9 +109,8 @@ async def execute_payment(user_id: str, expected_amount_usdc: float) -> str:
 
         tx_id = resp.json()["data"]["id"]
 
-        # Poll until the transaction is CONFIRMED (not just until a txHash appears)
-        for _ in range(30):
-            await asyncio.sleep(1)
+        for _ in range(45):
+            await asyncio.sleep(2)
             try:
                 poll_resp = await client.get(
                     f"https://api.circle.com/v1/w3s/transactions/{tx_id}",
@@ -120,13 +119,14 @@ async def execute_payment(user_id: str, expected_amount_usdc: float) -> str:
                 poll_resp.raise_for_status()
                 data = poll_resp.json().get("data", {}).get("transaction", {})
                 state = data.get("state", "")
+                tx_hash = data.get("txHash")
 
-                if state == "CONFIRMED" and data.get("txHash"):
-                    logger.info(
-                        "Payment confirmed: %s USDC from wallet %s (tx: %s)",
-                        expected_amount_usdc, wallet_id, data["txHash"],
-                    )
-                    return data["txHash"]
+                logger.info("Tx %s state: %s, txHash: %s", tx_id, state, tx_hash)
+
+                if state in ("CONFIRMED", "COMPLETE") and tx_hash:
+                    return tx_hash
+                if state == "SENT" and tx_hash:
+                    return tx_hash
                 if state in ("FAILED", "CANCELLED", "DENIED"):
                     error_reason = data.get("errorReason", "Unknown error")
                     raise ValueError(
