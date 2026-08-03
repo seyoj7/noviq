@@ -23,11 +23,6 @@ logger = logging.getLogger(__name__)
 
 
 def to_checksum_address(address: str) -> str:
-    """Convert an EVM address to its canonical EIP-55 checksummed format.
-
-    This ensures the same address always has one consistent representation
-    (e.g. 0x3b002394D3202B02CE0A9bfD5c0819d6Dd353a56) regardless of input casing.
-    """
     addr = address.replace("0x", "").replace("0X", "")
     addr_lower = addr.lower()
     k = keccak.new(digest_bits=256)

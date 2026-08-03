@@ -144,7 +144,6 @@ async def run_service(
 
 @app.post("/run", tags=["Services"], response_model=None)
 async def run_simple(body: RunServiceRequest):
-    """Simple one-call endpoint: handles wallet, payment, and service execution internally."""
     if not body.user_id:
         raise HTTPException(status_code=400, detail="user_id is required.")
 
@@ -191,7 +190,6 @@ async def run_simple(body: RunServiceRequest):
 
 @app.get("/transactions/{user_id}", tags=["Services"])
 async def get_user_transactions(user_id: str):
-    """Returns transaction history for a user."""
     return database.get_transactions(to_checksum_address(user_id))
 
 
@@ -268,5 +266,3 @@ async def handle_payment_flow(
             status_code=402,
             detail=str(exc),
         )
-
-

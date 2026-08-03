@@ -1,7 +1,3 @@
-"""
-Vercel serverless function entry point.
-Exposes the FastAPI app from backend/main.py for Vercel's Python runtime.
-"""
 import sys
 from pathlib import Path
 

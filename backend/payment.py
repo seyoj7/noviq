@@ -60,11 +60,6 @@ async def verify_authorization(auth_header: str, expected_amount_usdc: float) ->
 
 
 async def execute_payment(user_id: str, expected_amount_usdc: float) -> str:
-    """Executes a real on-chain transaction using the custodial Circle Developer Wallet.
-
-    Verifies sufficient USDC balance before attempting the transfer
-    and confirms the transaction reached CONFIRMED state on-chain.
-    """
     # Get or create the wallet (this also fetches the current balance)
     wallet_info = await get_or_create_wallet(user_id)
     wallet_id = wallet_info.wallet_id
