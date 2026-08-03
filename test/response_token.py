@@ -1,8 +1,8 @@
 import requests
 
-response = requests.post("http://localhost:8000/run", json={
+response = requests.post("https://noviq-kappa.vercel.app/run", json={
     "service_id": "token_price",
     "input_data": "ethereum",
-    "user_id": "0xdb819f7b4f275babbd19bcede38829d69143f660"
+    "user_id": "0x3b002394D3202B02CE0A9bfD5c0819d6Dd353a56"
 })
-print(response.json()['result'])
+print(response.json())

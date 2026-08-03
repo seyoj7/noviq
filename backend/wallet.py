@@ -4,7 +4,7 @@ import uuid
 import base64
 import codecs
 from Crypto.Cipher import PKCS1_OAEP
-from Crypto.Hash import SHA256
+from Crypto.Hash import SHA256, keccak
 from Crypto.PublicKey import RSA
 import httpx
 
@@ -20,6 +20,29 @@ from backend.models import WalletInfo
 from backend import database
 
 logger = logging.getLogger(__name__)
+
+
+def to_checksum_address(address: str) -> str:
+    """Convert an EVM address to its canonical EIP-55 checksummed format.
+
+    This ensures the same address always has one consistent representation
+    (e.g. 0x3b002394D3202B02CE0A9bfD5c0819d6Dd353a56) regardless of input casing.
+    """
+    addr = address.replace("0x", "").replace("0X", "")
+    addr_lower = addr.lower()
+    k = keccak.new(digest_bits=256)
+    k.update(addr_lower.encode("ascii"))
+    hash_hex = k.hexdigest()
+
+    checksummed = "0x"
+    for i, c in enumerate(addr_lower):
+        if c in "0123456789":
+            checksummed += c
+        elif int(hash_hex[i], 16) >= 8:
+            checksummed += c.upper()
+        else:
+            checksummed += c
+    return checksummed
 
 
 # Shared HTTP client factory
@@ -137,6 +160,8 @@ async def _get_wallet_info(wallet_id: str, user_id: str) -> WalletInfo:
 
 
 async def get_or_create_wallet(user_id: str) -> WalletInfo:
+    # Normalize to EIP-55 checksum so the same address always has one representation
+    user_id = to_checksum_address(user_id)
     wallet_id = database.get_wallet(user_id)
     if wallet_id:
         try:

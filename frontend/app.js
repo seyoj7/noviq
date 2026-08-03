@@ -96,7 +96,9 @@ function restoreWalletSession() {
       .then((r) => r.json())
       .then((w) => {
         state.wallet = w;
+        state.userId = w.user_id;
         localStorage.setItem("noviq_wallet", JSON.stringify(w));
+        updateWalletUI();
       })
       .catch((e) => console.error("Silent wallet refresh failed", e));
   } catch (e) {
@@ -405,6 +407,7 @@ async function handleConnectWallet() {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
     state.wallet = await resp.json();
+    state.userId = state.wallet.user_id;
     localStorage.setItem("noviq_wallet", JSON.stringify(state.wallet));
 
     updateWalletUI();

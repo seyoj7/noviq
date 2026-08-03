@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from backend import payment, wallet, database
+from backend.wallet import to_checksum_address
 from backend import services as service_module
 from backend.config import (
     CIRCLE_API_KEY,
@@ -90,6 +91,10 @@ async def run_service(
     body: RunServiceRequest,
     x_payment_authorization: str | None = Header(default=None),
 ):
+    # Ensure consistent EIP-55 checksummed address across all flows
+    if body.user_id:
+        body.user_id = to_checksum_address(body.user_id)
+
     if body.service_id not in service_module.SERVICE_REGISTRY:
         raise HTTPException(
             status_code=404,
@@ -143,6 +148,9 @@ async def run_simple(body: RunServiceRequest):
     if not body.user_id:
         raise HTTPException(status_code=400, detail="user_id is required.")
 
+    # Ensure consistent EIP-55 checksummed address across all flows
+    body.user_id = to_checksum_address(body.user_id)
+
     if body.service_id not in service_module.SERVICE_REGISTRY:
         raise HTTPException(
             status_code=404,
@@ -184,13 +192,13 @@ async def run_simple(body: RunServiceRequest):
 @app.get("/transactions/{user_id}", tags=["Services"])
 async def get_user_transactions(user_id: str):
     """Returns transaction history for a user."""
-    return database.get_transactions(user_id)
+    return database.get_transactions(to_checksum_address(user_id))
 
 
 @app.post("/wallet", response_model=WalletInfo, tags=["Wallets"])
 async def create_or_get_wallet(body: CreateWalletRequest) -> WalletInfo:
     try:
-        return await wallet.get_or_create_wallet(body.user_id)
+        return await wallet.get_or_create_wallet(to_checksum_address(body.user_id))
     except httpx.HTTPStatusError as exc:
         logger.error("Circle Wallets API error: %s", exc)
         raise HTTPException(status_code=502, detail=f"Circle Wallets API error: {exc.response.status_code}")
@@ -199,7 +207,7 @@ async def create_or_get_wallet(body: CreateWalletRequest) -> WalletInfo:
 @app.get("/wallet/{user_id}", response_model=WalletInfo, tags=["Wallets"])
 async def get_wallet(user_id: str) -> WalletInfo:
     try:
-        return await wallet.get_or_create_wallet(user_id)
+        return await wallet.get_or_create_wallet(to_checksum_address(user_id))
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=502, detail=f"Circle Wallets API error: {exc.response.status_code}")
 

@@ -60,20 +60,31 @@ async def verify_authorization(auth_header: str, expected_amount_usdc: float) ->
 
 
 async def execute_payment(user_id: str, expected_amount_usdc: float) -> str:
-    """Executes a real on-chain transaction using the custodial Circle Developer Wallet."""
-    wallet_id = database.get_wallet(user_id)
-    if not wallet_id:
-        wallet_info = await get_or_create_wallet(user_id)
-        wallet_id = wallet_info.wallet_id
-        
+    """Executes a real on-chain transaction using the custodial Circle Developer Wallet.
+
+    Verifies sufficient USDC balance before attempting the transfer
+    and confirms the transaction reached CONFIRMED state on-chain.
+    """
+    # Get or create the wallet (this also fetches the current balance)
+    wallet_info = await get_or_create_wallet(user_id)
+    wallet_id = wallet_info.wallet_id
+
+    # Pre-check: reject immediately if the wallet lacks funds
+    if wallet_info.usdc_balance < expected_amount_usdc:
+        raise ValueError(
+            f"Insufficient USDC balance: wallet has {wallet_info.usdc_balance} USDC, "
+            f"but {expected_amount_usdc} USDC is required. "
+            f"Please fund your wallet ({wallet_info.address}) with USDC on Arc Testnet."
+        )
+
     ciphertext = await _get_entity_secret_ciphertext()
     atomic_amount = _usdc_to_atomic(expected_amount_usdc)
-    
+
     headers = {
         "Authorization": f"Bearer {CIRCLE_API_KEY}",
         "Content-Type": "application/json"
     }
-    
+
     async with httpx.AsyncClient(timeout=30.0) as client:
         resp = await client.post(
             f"https://api.circle.com/v1/w3s/developer/transactions/contractExecution",
@@ -100,10 +111,11 @@ async def execute_payment(user_id: str, expected_amount_usdc: float) -> str:
                 err_msg = exc.response.text
             logger.error("Payment execution failed: %s", err_msg)
             raise ValueError(f"Transaction failed: {err_msg}")
-            
+
         tx_id = resp.json()["data"]["id"]
 
-        for _ in range(15):
+        # Poll until the transaction is CONFIRMED (not just until a txHash appears)
+        for _ in range(30):
             await asyncio.sleep(1)
             try:
                 poll_resp = await client.get(
@@ -112,11 +124,23 @@ async def execute_payment(user_id: str, expected_amount_usdc: float) -> str:
                 )
                 poll_resp.raise_for_status()
                 data = poll_resp.json().get("data", {}).get("transaction", {})
-                if data.get("txHash"):
+                state = data.get("state", "")
+
+                if state == "CONFIRMED" and data.get("txHash"):
+                    logger.info(
+                        "Payment confirmed: %s USDC from wallet %s (tx: %s)",
+                        expected_amount_usdc, wallet_id, data["txHash"],
+                    )
                     return data["txHash"]
-                if data.get("state") == "FAILED":
-                    raise ValueError("Transaction failed on-chain")
+                if state in ("FAILED", "CANCELLED", "DENIED"):
+                    error_reason = data.get("errorReason", "Unknown error")
+                    raise ValueError(
+                        f"Transaction {state.lower()}: {error_reason}"
+                    )
             except httpx.HTTPStatusError:
                 pass
-                
-        return tx_id
+
+        raise ValueError(
+            f"Transaction timed out waiting for confirmation. "
+            f"Circle transaction ID: {tx_id}. Please check status manually."
+        )
