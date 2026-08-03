@@ -10,7 +10,7 @@ load_dotenv(_REPO_ROOT / ".env")
 
 
 # Database
-POSTGRES_URL: str = os.getenv("POSTGRES_URL", "")
+POSTGRES_URL: str = os.getenv("DATABASE_URL", "")
 
 # Circle API
 CIRCLE_API_KEY: str = os.getenv("CIRCLE_API_KEY", "")
