@@ -115,7 +115,7 @@
 response = requests.post("https://YOUR_DOMAIN/run", json={
     "service_id": "token_price",
     "input_data": "bitcoin",
-    "user_id": "0xYOUR_WALLET_ADDRESS"
+    "user_id": "0xYOUR_EVM_WALLET_ADDRESS"
 })
 
 print(response.json()["result"])</code></pre>
@@ -272,7 +272,7 @@ print(response.json()["result"])</code></pre>
             <pre class="docs-code-block"><code>[
   {
     "id": 1,
-    "user_id": "0xYOUR_WALLET_ADDRESS",
+    "user_id": "0xYOUR_EVM_WALLET_ADDRESS",
     "service_id": "token_price",
     "service_name": "Token Price Fetcher",
     "cost": 0.005,

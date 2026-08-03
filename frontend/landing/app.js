@@ -171,8 +171,8 @@ function handleCopySnippet() {
 
   const textToCopy =
     activeTab === "python"
-      ? `import requests\n\nresponse = requests.post("${window.location.origin}/run", json={\n    "service_id": ${serviceId},\n    "input_data": ${inputData},\n    "user_id": "0xYOUR_WALLET_ADDRESS"\n})\nprint(response.json()["result"])`
-      : `const response = await fetch("${window.location.origin}/run", {\n    method: "POST",\n    headers: { "Content-Type": "application/json" },\n    body: JSON.stringify({\n        "service_id": ${serviceId},\n        "input_data": ${inputData},\n        "user_id": "0xYOUR_WALLET_ADDRESS"\n    })\n});\nconst data = await response.json();\nconsole.log(data.result);`;
+      ? `import requests\n\nresponse = requests.post("${window.location.origin}/run", json={\n    "service_id": ${serviceId},\n    "input_data": ${inputData},\n    "user_id": "0xYOUR_EVM_WALLET_ADDRESS"\n})\nprint(response.json()["result"])`
+      : `const response = await fetch("${window.location.origin}/run", {\n    method: "POST",\n    headers: { "Content-Type": "application/json" },\n    body: JSON.stringify({\n        "service_id": ${serviceId},\n        "input_data": ${inputData},\n        "user_id": "0xYOUR_EVM_WALLET_ADDRESS"\n    })\n});\nconst data = await response.json();\nconsole.log(data.result);`;
 
   navigator.clipboard.writeText(textToCopy);
   showToast(

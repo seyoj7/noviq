@@ -210,7 +210,7 @@
 <span class="syntax-variable">response</span> = <span class="syntax-module">requests</span>.post(<span class="syntax-string">"https://YOUR_DOMAIN/run"</span>, json={
     <span class="syntax-string">"service_id"</span>: <span class="syntax-string" id="snippet-service-id">"token_price"</span>,
     <span class="syntax-string">"input_data"</span>: <span class="syntax-string" id="snippet-input-data">"bitcoin"</span>,
-    <span class="syntax-string">"user_id"</span>: <span class="syntax-string">"0xYOUR_WALLET_ADDRESS"</span>
+    <span class="syntax-string">"user_id"</span>: <span class="syntax-string">"0xYOUR_EVM_WALLET_ADDRESS"</span>
 })
 <span class="syntax-builtin">print</span>(response.json()[<span class="syntax-string">"result"</span>])</code></pre>
 
@@ -220,7 +220,7 @@
     body: <span class="syntax-builtin">JSON</span>.stringify({
         <span class="syntax-string">"service_id"</span>: <span class="syntax-string" id="snippet-service-id-node">"token_price"</span>,
         <span class="syntax-string">"input_data"</span>: <span class="syntax-string" id="snippet-input-data-node">"bitcoin"</span>,
-        <span class="syntax-string">"user_id"</span>: <span class="syntax-string">"0xYOUR_WALLET_ADDRESS"</span>
+        <span class="syntax-string">"user_id"</span>: <span class="syntax-string">"0xYOUR_EVM_WALLET_ADDRESS"</span>
     })
 });
 <span class="syntax-keyword">const</span> data = <span class="syntax-keyword">await</span> response.json();
