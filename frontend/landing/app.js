@@ -67,6 +67,12 @@ function updateSnippetDomain() {
       el.innerHTML = el.innerHTML.replace(/https:\/\/YOUR_DOMAIN/g, origin);
     }
   });
+
+  // Re-bind snippet DOM elements because innerHTML replacement detached the original nodes
+  dom.snippetServiceId = $("#snippet-service-id");
+  dom.snippetInputData = $("#snippet-input-data");
+  dom.snippetServiceIdNode = $("#snippet-service-id-node");
+  dom.snippetInputDataNode = $("#snippet-input-data-node");
 }
 
 function initSnippetPanel() {
@@ -549,11 +555,16 @@ function renderHistory() {
         timeZone: "Asia/Kolkata",
       });
 
+      const costFormatted =
+        entry.cost > 0 && entry.cost < 0.01
+          ? entry.cost.toFixed(3)
+          : entry.cost.toFixed(2);
+
       return `
         <tr>
           <td class="history-cell-time">${time}</td>
           <td>${escapeHtml(entry.agent)}</td>
-          <td class="history-cell-cost">$${entry.cost.toFixed(2)}</td>
+          <td class="history-cell-cost">$${costFormatted}</td>
           <td><span class="status-badge ${statusClass}">${statusIcon} ${statusLabel}</span></td>
           <td>
             <div class="history-tx-wrapper">

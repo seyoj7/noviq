@@ -98,7 +98,7 @@
 
 /* Main Content Area */
 .docs-main {
-  padding: var(--space-2xl) var(--space-2xl) var(--space-4xl);
+  padding: var(--space-2xl) var(--space-2xl) 16px;
   min-width: 0;
 }
 
@@ -253,6 +253,7 @@
 /* Docs Alerts */
 .docs-alert {
   display: flex;
+  align-items: flex-start;
   gap: 16px;
   padding: 16px;
   border-radius: var(--radius-md);
@@ -262,11 +263,15 @@
 
 .docs-alert-icon {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: 1.5em;
 }
 
 .docs-alert-content p {
   margin: 0;
   color: inherit;
+  line-height: 1.5;
 }
 
 .docs-alert-info {
@@ -312,12 +317,16 @@
 
 
 .docs-footer {
-  margin-top: var(--space-4xl);
-  padding-top: var(--space-xl);
+  margin-top: 28px;
+  padding-top: 16px;
   border-top: 1px solid var(--border-light);
   text-align: center;
   color: var(--text-tertiary);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+}
+
+.docs-footer p {
+  margin: 0;
 }
 
 /* Responsive Docs */
