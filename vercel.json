@@ -21,14 +21,16 @@
     { "src": "/redoc", "dest": "/api/index.py" },
     { "src": "/openapi.json", "dest": "/api/index.py" },
     { "src": "/frontend/(.*)", "dest": "/frontend/$1" },
-    { "src": "/(.*\\.css)", "dest": "/frontend/$1" },
-    { "src": "/(.*\\.js)", "dest": "/frontend/$1" },
-    { "src": "/(.*\\.html)", "dest": "/frontend/$1" },
-    { "src": "/(.*\\.png)", "dest": "/frontend/$1" },
     { "src": "/assets/(.*)", "dest": "/frontend/assets/$1" },
-    { "src": "/documentation.html", "dest": "/frontend/documentation.html" },
-    { "src": "/docs.css", "dest": "/frontend/docs.css" },
-    { "src": "/docs.js", "dest": "/frontend/docs.js" },
-    { "src": "/", "dest": "/frontend/index.html" }
+    { "src": "/documentation.html", "dest": "/frontend/docs/documentation.html" },
+    { "src": "/docs.css", "dest": "/frontend/docs/docs.css" },
+    { "src": "/docs.js", "dest": "/frontend/docs/docs.js" },
+    { "src": "/styles.css", "dest": "/frontend/landing/styles.css" },
+    { "src": "/app.js", "dest": "/frontend/landing/app.js" },
+    { "src": "/(.*\\.css)", "dest": "/frontend/landing/$1" },
+    { "src": "/(.*\\.js)", "dest": "/frontend/landing/$1" },
+    { "src": "/(.*\\.html)", "dest": "/frontend/landing/$1" },
+    { "src": "/(.*\\.png)", "dest": "/frontend/assets/$1" },
+    { "src": "/", "dest": "/frontend/landing/index.html" }
   ]
 }
