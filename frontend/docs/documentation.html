@@ -67,6 +67,7 @@
             <li><a href="#api-run" class="docs-nav-link">POST /run</a></li>
             <li><a href="#api-services" class="docs-nav-link">GET /services</a></li>
             <li><a href="#api-transactions" class="docs-nav-link">GET /transactions/{id}</a></li>
+            <li><a href="#api-keys-endpoints" class="docs-nav-link">API Key Management</a></li>
           </ul>
         </div>
       </div>
@@ -102,8 +103,7 @@
           </div>
 
           <h2 id="quickstart">Quickstart</h2>
-          <p>Integrating Noviq into your application requires making a simple HTTP POST request. You provide your wallet
-            address, the service ID, and the input data. Noviq handles the underlying smart contract interactions.</p>
+          <p>Integrating Noviq into your application takes two steps: generate an API key through the dashboard, then make an HTTP POST request with your key in the <code>Authorization</code> header.</p>
 
           <div class="docs-code-block-wrapper">
             <div class="docs-code-block-header">
@@ -112,22 +112,35 @@
             </div>
             <pre class="docs-code-block"><code>import requests
 
-response = requests.post("https://YOUR_DOMAIN/run", json={
-    "service_id": "token_price",
-    "input_data": "bitcoin",
-    "user_id": "0xYOUR_EVM_WALLET_ADDRESS"
-})
+response = requests.post("https://YOUR_DOMAIN/run",
+    headers={"Authorization": "Bearer nvq_YOUR_API_KEY"},
+    json={
+        "service_id": "token_price",
+        "input_data": "bitcoin"
+    }
+)
 
 print(response.json()["result"])</code></pre>
           </div>
 
           <h2 id="authentication">Authentication</h2>
-          <p>Noviq does not use traditional API keys or passwords. Authentication and payment are merged into a single
-            step using Circle Nanopayments. When your agent sends a request to the API, it must sign a transaction
-            payload using your EVM wallet.</p>
+          <p>Noviq uses <strong>API key-based authentication</strong>. To get started:</p>
 
-          <p>The <code>/run</code> endpoint offers a simplified wrapper that will automatically look up your wallet (or
-            create a smart contract wallet for you if none exists) and execute the transaction on-chain.</p>
+          <ol>
+            <li><strong>Connect your wallet</strong> — visit the Noviq dashboard and connect your MetaMask (or any EVM) wallet. This proves ownership of your wallet address.</li>
+            <li><strong>Generate an API key</strong> — in the wallet panel, click "Generate Key" to create a new API key. The full key (prefixed with <code>nvq_</code>) is shown <em>only once</em> — copy and store it securely.</li>
+            <li><strong>Use the key in requests</strong> — include the key in the <code>Authorization</code> header of every API request:</li>
+          </ol>
+
+          <div class="docs-code-block-wrapper">
+            <div class="docs-code-block-header">
+              <span class="docs-code-lang">http</span>
+              <button class="docs-btn-copy" aria-label="Copy code">Copy</button>
+            </div>
+            <pre class="docs-code-block"><code>Authorization: Bearer nvq_YOUR_API_KEY</code></pre>
+          </div>
+
+          <p>Each API key is tied to your wallet address. When you call a service, Noviq automatically looks up the wallet associated with your key and executes the on-chain USDC payment from that wallet.</p>
 
           <div class="docs-alert docs-alert-warning">
             <div class="docs-alert-icon">
@@ -139,8 +152,7 @@ print(response.json()["result"])</code></pre>
               </svg>
             </div>
             <div class="docs-alert-content">
-              <p><strong>Warning:</strong> Ensure your wallet is funded with sufficient USDC before running services.
-                Insufficient funds will result in a <code>402 Payment Required</code> error.</p>
+              <p><strong>Warning:</strong> Treat your API key like a password. If compromised, revoke it immediately from the dashboard and generate a new one. Ensure your wallet is funded with sufficient USDC before running services.</p>
             </div>
           </div>
 
@@ -167,7 +179,32 @@ print(response.json()["result"])</code></pre>
           </p>
 
           <h2 id="api-run">POST /run</h2>
-          <p>The primary endpoint to execute a service and handle payment automatically.</p>
+          <p>The primary endpoint to execute a service and handle payment automatically. Requires a valid API key in the <code>Authorization</code> header.</p>
+
+          <h3>Headers</h3>
+          <div class="docs-table-wrapper">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th>Header</th>
+                  <th>Value</th>
+                  <th>Required</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>Authorization</code></td>
+                  <td><code>Bearer nvq_YOUR_API_KEY</code></td>
+                  <td>Yes</td>
+                </tr>
+                <tr>
+                  <td><code>Content-Type</code></td>
+                  <td><code>application/json</code></td>
+                  <td>Yes</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           <h3>Request Body</h3>
           <div class="docs-table-wrapper">
@@ -190,11 +227,6 @@ print(response.json()["result"])</code></pre>
                   <td><code>string</code></td>
                   <td>The payload or prompt required by the service.</td>
                 </tr>
-                <tr>
-                  <td><code>user_id</code></td>
-                  <td><code>string</code></td>
-                  <td>Your EVM wallet address.</td>
-                </tr>
               </tbody>
             </table>
           </div>
@@ -216,7 +248,7 @@ print(response.json()["result"])</code></pre>
           </div>
 
           <h2 id="api-services">GET /services</h2>
-          <p>Returns a list of all available services on the Noviq platform.</p>
+          <p>Returns a list of all available services on the Noviq platform. No authentication required.</p>
 
           <h3>Response</h3>
           <div class="docs-code-block-wrapper">
@@ -282,6 +314,56 @@ print(response.json()["result"])</code></pre>
   }
 ]</code></pre>
           </div>
+
+          <h2 id="api-keys-endpoints">API Key Management</h2>
+          <p>These endpoints allow you to create, list, and revoke API keys for your wallet address.</p>
+
+          <h3>POST /api-keys</h3>
+          <p>Generate a new API key. The full key is returned <strong>only once</strong> in the response — store it securely.</p>
+
+          <div class="docs-table-wrapper">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>wallet_address</code></td>
+                  <td><code>string</code></td>
+                  <td>Your EVM wallet address.</td>
+                </tr>
+                <tr>
+                  <td><code>label</code></td>
+                  <td><code>string</code></td>
+                  <td>Optional human-friendly label for this key.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="docs-code-block-wrapper">
+            <div class="docs-code-block-header">
+              <span class="docs-code-lang">json</span>
+              <button class="docs-btn-copy" aria-label="Copy code">Copy</button>
+            </div>
+            <pre class="docs-code-block"><code>// Response (shown only once)
+{
+  "api_key": "nvq_a1b2c3d4e5f6...",
+  "key_prefix": "nvq_a1b2c3d4",
+  "label": "my-bot",
+  "created_at": "2026-08-04T12:00:00Z"
+}</code></pre>
+          </div>
+
+          <h3>GET /api-keys/{wallet_address}</h3>
+          <p>List all API keys (active and revoked) for a given wallet. Never returns the full key.</p>
+
+          <h3>DELETE /api-keys/{key_prefix}</h3>
+          <p>Revoke an API key by its prefix. Requires <code>wallet_address</code> and <code>key_prefix</code> in the request body.</p>
 
         </div>
       </article>

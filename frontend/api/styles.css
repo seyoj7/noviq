@@ -1,0 +1,90 @@
+/* API Keys Page — Dedicated Styles */
+
+/* Disconnected state card */
+.api-keys-disconnected {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-2xl) var(--space-xl);
+  min-height: 300px;
+}
+
+.api-keys-disconnected h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-on-dark);
+  margin: 0 0 var(--space-sm);
+}
+
+.api-keys-disconnected p {
+  font-size: 0.9rem;
+  color: var(--text-muted-on-dark);
+  margin: 0 0 var(--space-lg);
+  max-width: 380px;
+}
+
+/* Page header text overrides */
+.section-eyebrow {
+  font-size: 1.5rem; /* Increased size */
+  font-weight: 800;  /* Make it bold */
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+}
+
+/* Override list height for full-page layout */
+.api-keys-section .api-key-list {
+  max-height: none;
+}
+
+/* Override font sizes for full-page readability */
+.api-keys-section .api-key-item {
+  padding: var(--space-md) var(--space-lg);
+}
+
+.api-keys-section .api-key-item-label {
+  font-size: 0.9rem;
+}
+
+.api-keys-section .api-key-item-prefix {
+  font-size: 0.78rem;
+}
+
+.api-keys-section .api-key-item-status {
+  font-size: 0.75rem;
+}
+
+.api-keys-section .api-key-item-meta {
+  font-size: 0.75rem;
+}
+
+.api-keys-section .api-key-list-empty p {
+  font-size: 0.9rem;
+}
+
+.api-keys-section .api-key-revoke-btn {
+  font-size: 0.78rem !important;
+  padding: 4px 10px !important;
+}
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+  .api-key-generate {
+    flex-direction: column;
+  }
+
+  .api-key-generate .btn {
+    width: 100%;
+  }
+
+  .api-keys-disconnected {
+    padding: var(--space-xl) var(--space-md);
+    min-height: 220px;
+  }
+}
+
+/* Remove the section divider line at the bottom of the main API keys page */
+main.section::after {
+  display: none;
+}

@@ -12,15 +12,11 @@ class ServiceInfo(BaseModel):
     price_usdc: float = Field(..., description="Cost per request in USDC")
 
 
-# /run-service
+# /run and /run-service
 class RunServiceRequest(BaseModel):
 
     service_id: str = Field(..., description="ID of the service to run")
     input_data: str = Field(..., min_length=1, description="User-supplied data")
-    user_id: str | None = Field(
-        default=None,
-        description="Caller's user ID — used to look up their Circle wallet for balance display",
-    )
 
 
 # 402 Payment Required
@@ -57,3 +53,31 @@ class HealthResponse(BaseModel):
     circle_api_key_set: bool
     entity_secret_set: bool
     seller_wallet_configured: bool
+
+
+# API Key Management
+class GenerateApiKeyRequest(BaseModel):
+    wallet_address: str = Field(..., description="EVM wallet address that owns this key")
+    label: str = Field(default="", description="Optional human-friendly label for this key")
+
+
+class ApiKeyResponse(BaseModel):
+    """Returned when listing keys — never exposes the full key."""
+    key_prefix: str
+    label: str
+    created_at: str
+    last_used_at: str | None = None
+    is_revoked: bool = False
+
+
+class ApiKeyCreatedResponse(BaseModel):
+    """Returned exactly once at creation time with the full raw key."""
+    api_key: str = Field(..., description="Full API key — store securely, it will NOT be shown again")
+    key_prefix: str
+    label: str
+    created_at: str
+
+
+class RevokeApiKeyRequest(BaseModel):
+    wallet_address: str = Field(..., description="EVM wallet address that owns this key")
+    key_prefix: str = Field(..., description="Prefix of the key to revoke (e.g. 'nvq_a1b2c3d4')")

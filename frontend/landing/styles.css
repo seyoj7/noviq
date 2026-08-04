@@ -1613,3 +1613,238 @@ h4 {
     transform-origin: bottom center;
   }
 }
+
+
+/* ── API Key Management ────────────────────────────────────────────── */
+
+.wallet-panel-divider {
+  height: 1px;
+  background: var(--border-dark);
+  margin: var(--space-md) 0;
+  opacity: 0.5;
+}
+
+.api-keys-section {
+  padding: 0 var(--space-md) var(--space-md);
+}
+
+.api-keys-header {
+  margin-bottom: var(--space-md);
+}
+
+.api-keys-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-on-dark);
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.api-keys-title svg {
+  color: var(--accent-secondary);
+  flex-shrink: 0;
+}
+
+/* Generate key form */
+.api-key-generate {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.api-key-label-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  color: var(--text-on-dark);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.api-key-label-input::placeholder {
+  color: var(--text-muted-on-dark);
+}
+
+.api-key-label-input:focus {
+  border-color: var(--accent-secondary);
+}
+
+/* Newly created key banner */
+.api-key-created {
+  background: rgba(217, 119, 6, 0.08);
+  border: 1px solid rgba(217, 119, 6, 0.3);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-md);
+  animation: fadeSlideIn 0.3s ease-out;
+}
+
+.api-key-created-warning {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.72rem;
+  color: var(--warning);
+  font-weight: 500;
+  margin-bottom: var(--space-sm);
+}
+
+.api-key-created-warning svg {
+  flex-shrink: 0;
+}
+
+.api-key-created-value {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-on-dark);
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  word-break: break-all;
+  margin-bottom: var(--space-sm);
+  user-select: all;
+  line-height: 1.5;
+}
+
+.api-key-created .btn {
+  width: 100%;
+  font-size: 0.75rem;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Key list */
+.api-key-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.api-key-list-empty {
+  text-align: center;
+  padding: var(--space-lg) 0;
+}
+
+.api-key-list-empty p {
+  font-size: 0.78rem;
+  color: var(--text-muted-on-dark);
+  margin: 0;
+}
+
+.api-key-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.api-key-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.api-key-item.current {
+  border-color: rgba(200, 90, 39, 0.4);
+  background: rgba(200, 90, 39, 0.05);
+}
+
+.api-key-item.revoked {
+  opacity: 0.5;
+}
+
+.api-key-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: 4px;
+}
+
+.api-key-item-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.api-key-item-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-on-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.api-key-item-prefix {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-muted-on-dark);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.api-key-item-status {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.api-key-item-status.active {
+  color: var(--success);
+}
+
+.api-key-item-status.revoked {
+  color: var(--error);
+}
+
+.api-key-item-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.api-key-item-meta {
+  font-size: 0.68rem;
+  color: var(--text-muted-on-dark);
+}
+
+.api-key-revoke-btn {
+  font-size: 0.68rem !important;
+  color: var(--error) !important;
+  padding: 2px 6px !important;
+  opacity: 0.7;
+  transition: opacity var(--transition-fast);
+}
+
+.api-key-revoke-btn:hover {
+  opacity: 1;
+}
+
+.btn-xs {
+  padding: 2px 8px;
+  font-size: 0.7rem;
+}
+
+/* Navbar key badge */
+.navbar-key-badge {
+  font-size: 0.7rem;
+  margin-left: 4px;
+}

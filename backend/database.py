@@ -39,6 +39,18 @@ def init_db():
                         created_at TEXT NOT NULL
                     )
                 """)
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS api_keys (
+                        id SERIAL PRIMARY KEY,
+                        key_hash TEXT NOT NULL UNIQUE,
+                        key_prefix TEXT NOT NULL,
+                        wallet_address TEXT NOT NULL,
+                        label TEXT NOT NULL DEFAULT '',
+                        created_at TEXT NOT NULL,
+                        last_used_at TEXT,
+                        is_revoked BOOLEAN NOT NULL DEFAULT FALSE
+                    )
+                """)
             conn.commit()
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}")
@@ -119,5 +131,96 @@ def get_transactions(user_id: str) -> list[dict]:
                     }
                     for row in rows
                 ]
+    finally:
+        conn.close()
+
+
+# API Key Operations
+def save_api_key(key_hash: str, key_prefix: str, wallet_address: str, label: str = ""):
+    conn = get_db_conn()
+    if not conn: return
+
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO api_keys (key_hash, key_prefix, wallet_address, label, created_at)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (
+                    key_hash,
+                    key_prefix,
+                    wallet_address,
+                    label,
+                    datetime.now(timezone.utc).isoformat()
+                ))
+    finally:
+        conn.close()
+
+
+def get_api_key(key_hash: str) -> dict | None:
+    """Look up an API key by its hash. Returns None if not found or revoked."""
+    conn = get_db_conn()
+    if not conn: return None
+
+    try:
+        with conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute(
+                    "SELECT * FROM api_keys WHERE key_hash = %s AND is_revoked = FALSE",
+                    (key_hash,)
+                )
+                row = cur.fetchone()
+                return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def get_api_keys_for_wallet(wallet_address: str) -> list[dict]:
+    """Return all API keys (active and revoked) for a given wallet address."""
+    conn = get_db_conn()
+    if not conn: return []
+
+    try:
+        with conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute(
+                    "SELECT key_prefix, label, created_at, last_used_at, is_revoked "
+                    "FROM api_keys WHERE wallet_address = %s ORDER BY id DESC",
+                    (wallet_address,)
+                )
+                return [dict(row) for row in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def revoke_api_key(key_prefix: str, wallet_address: str) -> bool:
+    """Revoke a key by prefix+wallet. Returns True if a key was actually revoked."""
+    conn = get_db_conn()
+    if not conn: return False
+
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE api_keys SET is_revoked = TRUE "
+                    "WHERE key_prefix = %s AND wallet_address = %s AND is_revoked = FALSE",
+                    (key_prefix, wallet_address)
+                )
+                return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
+def update_api_key_last_used(key_hash: str):
+    conn = get_db_conn()
+    if not conn: return
+
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE api_keys SET last_used_at = %s WHERE key_hash = %s",
+                    (datetime.now(timezone.utc).isoformat(), key_hash)
+                )
     finally:
         conn.close()

@@ -9,21 +9,26 @@ if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
 import httpx
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Depends, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from backend import payment, wallet, database
 from backend.wallet import to_checksum_address
 from backend import services as service_module
+from backend.auth import generate_api_key, validate_api_key
 from backend.config import (
     CIRCLE_API_KEY,
     CIRCLE_ENTITY_SECRET,
     SELLER_WALLET_ADDRESS,
 )
 from backend.models import (
+    ApiKeyCreatedResponse,
+    ApiKeyResponse,
     CreateWalletRequest,
+    GenerateApiKeyRequest,
     HealthResponse,
+    RevokeApiKeyRequest,
     RunServiceRequest,
     ServiceInfo,
     WalletInfo,
@@ -47,7 +52,7 @@ app = FastAPI(
         "Pay-per-request AI services powered by Circle Nanopayments on Arc. "
         "No subscriptions. No gas. Just sign and run."
     ),
-    version="0.1.0",
+    version="0.2.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
@@ -62,7 +67,8 @@ app.add_middleware(
 
 
 
-# Routes
+# ── Public routes (no auth) ─────────────────────────────────────────
+
 @app.get("/health", response_model=HealthResponse, tags=["Meta"])
 async def health() -> HealthResponse:
     return HealthResponse(
@@ -86,14 +92,16 @@ async def list_services() -> list[ServiceInfo]:
     ]
 
 
+# ── Service execution routes (API key required) ─────────────────────
+
 @app.post("/run-service", tags=["Services"], response_model=None)
 async def run_service(
     body: RunServiceRequest,
+    wallet_address: str = Depends(validate_api_key),
     x_payment_authorization: str | None = Header(default=None),
 ):
     # Ensure consistent EIP-55 checksummed address across all flows
-    if body.user_id:
-        body.user_id = to_checksum_address(body.user_id)
+    wallet_address = to_checksum_address(wallet_address)
 
     if body.service_id not in service_module.SERVICE_REGISTRY:
         raise HTTPException(
@@ -109,7 +117,7 @@ async def run_service(
         item_id=body.service_id,
         price_usdc=service_def.price_usdc,
         description=f"Run {service_def.name} on Noviq",
-        user_id=body.user_id,
+        user_id=wallet_address,
     )
     
     if isinstance(payment_result, JSONResponse):
@@ -126,7 +134,7 @@ async def run_service(
         raise HTTPException(status_code=502, detail="Service returned an error.")
 
     database.save_transaction(
-        user_id=body.user_id,
+        user_id=wallet_address,
         service_id=body.service_id,
         service_name=service_def.name,
         cost=service_def.price_usdc,
@@ -143,12 +151,12 @@ async def run_service(
 
 
 @app.post("/run", tags=["Services"], response_model=None)
-async def run_simple(body: RunServiceRequest):
-    if not body.user_id:
-        raise HTTPException(status_code=400, detail="user_id is required.")
-
+async def run_simple(
+    body: RunServiceRequest,
+    wallet_address: str = Depends(validate_api_key),
+):
     # Ensure consistent EIP-55 checksummed address across all flows
-    body.user_id = to_checksum_address(body.user_id)
+    wallet_address = to_checksum_address(wallet_address)
 
     if body.service_id not in service_module.SERVICE_REGISTRY:
         raise HTTPException(
@@ -161,7 +169,7 @@ async def run_simple(body: RunServiceRequest):
 
     # Execute payment directly (wallet lookup + on-chain transfer)
     try:
-        tx_hash = await payment.execute_payment(body.user_id, service_def.price_usdc)
+        tx_hash = await payment.execute_payment(wallet_address, service_def.price_usdc)
     except ValueError as exc:
         raise HTTPException(status_code=402, detail=str(exc))
 
@@ -172,7 +180,7 @@ async def run_simple(body: RunServiceRequest):
         raise HTTPException(status_code=400, detail=str(exc))
 
     database.save_transaction(
-        user_id=body.user_id,
+        user_id=wallet_address,
         service_id=body.service_id,
         service_name=service_def.name,
         cost=service_def.price_usdc,
@@ -193,6 +201,8 @@ async def get_user_transactions(user_id: str):
     return database.get_transactions(to_checksum_address(user_id))
 
 
+# ── Wallet routes (unchanged) ───────────────────────────────────────
+
 @app.post("/wallet", response_model=WalletInfo, tags=["Wallets"])
 async def create_or_get_wallet(body: CreateWalletRequest) -> WalletInfo:
     try:
@@ -209,6 +219,55 @@ async def get_wallet(user_id: str) -> WalletInfo:
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=502, detail=f"Circle Wallets API error: {exc.response.status_code}")
 
+
+# ── API Key management routes ───────────────────────────────────────
+
+@app.post("/api-keys", response_model=ApiKeyCreatedResponse, tags=["API Keys"])
+async def create_api_key(body: GenerateApiKeyRequest):
+    """Generate a new API key for the given wallet address.
+
+    The full key is returned **only once** in the response.
+    """
+    wallet_addr = to_checksum_address(body.wallet_address)
+    raw_key, key_hash, key_prefix = generate_api_key()
+
+    database.save_api_key(
+        key_hash=key_hash,
+        key_prefix=key_prefix,
+        wallet_address=wallet_addr,
+        label=body.label,
+    )
+
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc).isoformat()
+
+    return ApiKeyCreatedResponse(
+        api_key=raw_key,
+        key_prefix=key_prefix,
+        label=body.label,
+        created_at=now,
+    )
+
+
+@app.get("/api-keys/{wallet_address}", response_model=list[ApiKeyResponse], tags=["API Keys"])
+async def list_api_keys(wallet_address: str):
+    """List all API keys for a wallet (active and revoked). Never returns the full key."""
+    wallet_addr = to_checksum_address(wallet_address)
+    keys = database.get_api_keys_for_wallet(wallet_addr)
+    return [ApiKeyResponse(**k) for k in keys]
+
+
+@app.delete("/api-keys/{key_prefix}", tags=["API Keys"])
+async def revoke_api_key_endpoint(key_prefix: str, body: RevokeApiKeyRequest):
+    """Revoke an API key by its prefix."""
+    wallet_addr = to_checksum_address(body.wallet_address)
+    revoked = database.revoke_api_key(key_prefix, wallet_addr)
+    if not revoked:
+        raise HTTPException(status_code=404, detail="API key not found or already revoked.")
+    return {"status": "revoked", "key_prefix": key_prefix}
+
+
+# ── Payment helper ──────────────────────────────────────────────────
 
 async def handle_payment_flow(
     x_payment_authorization: str | None,

@@ -3,6 +3,8 @@ const API_BASE = "";
 const state = {
   userId: null,
   wallet: null,
+  apiKey: null,       // Active raw API key (stored in localStorage)
+  apiKeys: [],        // List of key records (prefix, label, etc.)
   services: [],
   selectedService: null,
   isProcessing: false,
@@ -42,6 +44,8 @@ const dom = {
   snippetServiceIdNode: $("#snippet-service-id-node"),
   snippetInputDataNode: $("#snippet-input-data-node"),
   snippetTabsContainer: $(".code-snippet-tabs"),
+
+  // API Key management elements removed as they moved to api-keys.js
 };
 
 document.addEventListener("DOMContentLoaded", init);
@@ -87,11 +91,15 @@ function initSnippetPanel() {
 
 function restoreWalletSession() {
   const savedWallet = localStorage.getItem("noviq_wallet");
+  const savedApiKey = localStorage.getItem("noviq_api_key");
   if (!savedWallet) return;
 
   try {
     state.wallet = JSON.parse(savedWallet);
     state.userId = state.wallet.user_id;
+    if (savedApiKey) {
+      state.apiKey = savedApiKey;
+    }
     updateWalletUI();
     loadHistoryFromStorage();
 
@@ -120,6 +128,8 @@ function bindEvents() {
   dom.btnBackToServices.addEventListener("click", handleBackToServices);
   dom.btnDisconnectWallet.addEventListener("click", handleDisconnectWallet);
   dom.walletBackdrop.addEventListener("click", closeWalletPanel);
+
+  // API Key management events moved to api-keys.js
 }
 
 function initScrollEffects() {
@@ -169,10 +179,12 @@ function handleCopySnippet() {
       ? dom.snippetInputData?.textContent || '"bitcoin"'
       : dom.snippetInputDataNode?.textContent || '"bitcoin"';
 
+  const apiKeyPlaceholder = state.apiKey || "nvq_YOUR_API_KEY";
+
   const textToCopy =
     activeTab === "python"
-      ? `import requests\n\nresponse = requests.post("${window.location.origin}/run", json={\n    "service_id": ${serviceId},\n    "input_data": ${inputData},\n    "user_id": "0xYOUR_EVM_WALLET_ADDRESS"\n})\nprint(response.json()["result"])`
-      : `const response = await fetch("${window.location.origin}/run", {\n    method: "POST",\n    headers: { "Content-Type": "application/json" },\n    body: JSON.stringify({\n        "service_id": ${serviceId},\n        "input_data": ${inputData},\n        "user_id": "0xYOUR_EVM_WALLET_ADDRESS"\n    })\n});\nconst data = await response.json();\nconsole.log(data.result);`;
+      ? `import requests\n\nresponse = requests.post("${window.location.origin}/run",\n    headers={"Authorization": "Bearer ${apiKeyPlaceholder}"},\n    json={\n        "service_id": ${serviceId},\n        "input_data": ${inputData}\n})\nprint(response.json()["result"])`
+      : `const response = await fetch("${window.location.origin}/run", {\n    method: "POST",\n    headers: {\n        "Content-Type": "application/json",\n        "Authorization": "Bearer ${apiKeyPlaceholder}"\n    },\n    body: JSON.stringify({\n        "service_id": ${serviceId},\n        "input_data": ${inputData}\n    })\n});\nconst data = await response.json();\nconsole.log(data.result);`;
 
   navigator.clipboard.writeText(textToCopy);
   showToast(
@@ -183,15 +195,24 @@ function handleCopySnippet() {
 
 async function apiFetch(path, options = {}) {
   const { headers: customHeaders, ...restOptions } = options;
+  const mergedHeaders = { "Content-Type": "application/json", ...customHeaders };
+
+  // Auto-attach API key if one is stored
+  if (state.apiKey && !mergedHeaders["Authorization"]) {
+    mergedHeaders["Authorization"] = `Bearer ${state.apiKey}`;
+  }
+
   return fetch(`${API_BASE}${path}`, {
     ...restOptions,
-    headers: { "Content-Type": "application/json", ...customHeaders },
+    headers: mergedHeaders,
   });
 }
 
 async function fetchServices() {
   try {
-    const resp = await apiFetch("/services");
+    const resp = await fetch(`${API_BASE}/services`, {
+      headers: { "Content-Type": "application/json" },
+    });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     state.services = await resp.json();
     renderServiceCards();
@@ -273,10 +294,13 @@ function handleBackToServices() {
 }
 
 async function runService(serviceId, inputData) {
+  if (!state.apiKey) {
+    throw new Error("No API key set. Please generate an API key first.");
+  }
+
   const body = JSON.stringify({
     service_id: serviceId,
     input_data: inputData,
-    user_id: state.userId,
   });
 
   const firstResp = await apiFetch("/run-service", {
@@ -318,9 +342,9 @@ async function runService(serviceId, inputData) {
 async function handleRunService() {
   if (!state.selectedService || state.isProcessing) return;
 
-  if (!state.userId) {
+  if (!state.apiKey) {
     showToast(
-      "Please connect your wallet first to run this service.",
+      "Please generate an API key first (connect wallet → API Keys).",
       "error"
     );
     return;
@@ -406,8 +430,9 @@ async function handleConnectWallet() {
 
     state.userId = accounts[0];
 
-    const resp = await apiFetch("/wallet", {
+    const resp = await fetch(`${API_BASE}/wallet`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_id: state.userId }),
     });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -441,10 +466,15 @@ async function handleConnectWallet() {
 function updateWalletUI() {
   if (!state.wallet) return;
 
+  const hasApiKey = !!state.apiKey;
+  const keyBadge = hasApiKey
+    ? `<span class="navbar-key-badge" title="API key active">🔑</span>`
+    : "";
+
   dom.navbarWallet.innerHTML = `
     <div class="navbar-wallet-info">
       <div class="wallet-address-chip" id="nav-wallet-address" title="${state.wallet.user_id}">
-        ${truncateAddress(state.wallet.user_id)}
+        ${truncateAddress(state.wallet.user_id)} ${keyBadge}
       </div>
     </div>
   `;
@@ -513,7 +543,10 @@ function closeWalletPanel() {
 function handleDisconnectWallet() {
   closeWalletPanel();
   state.wallet = null;
+  state.apiKey = null;
+  state.apiKeys = [];
   localStorage.removeItem("noviq_wallet");
+  localStorage.removeItem("noviq_api_key");
 
   dom.navbarWallet.innerHTML = `<button class="btn btn-primary btn-sm" id="btn-connect-wallet">Connect Wallet</button>`;
   dom.btnConnect = document.getElementById("btn-connect-wallet");
@@ -521,6 +554,9 @@ function handleDisconnectWallet() {
 
   showToast("Wallet disconnected", "info");
 }
+
+
+// ── History ─────────────────────────────────────────────────────────
 
 function addHistoryEntry(entry) {
   state.history.unshift(entry);
@@ -602,6 +638,9 @@ function loadHistoryFromStorage() {
     })
     .catch(() => renderHistory());
 }
+
+
+// ── Utilities ───────────────────────────────────────────────────────
 
 function showToast(message, type = "info") {
   const toast = document.createElement("div");
