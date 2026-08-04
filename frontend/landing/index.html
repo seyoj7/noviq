@@ -49,59 +49,94 @@
 
 
   <header id="hero" class="hero">
-    <div class="hero-badge">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="text-warning">
-        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-      </svg>
-      pay-per-request for APIs
+    <div class="hero-content-wrapper">
+      <div class="hero-content-left">
+        <div class="hero-eyebrow">
+          PAY-PER-REQUEST FOR APIS
+        </div>
+        <h1 class="hero-title">
+          Stop paying for<br />
+          <span class="hero-title-highlight">API subscriptions.</span>
+        </h1>
+        <p class="hero-subtitle">
+          APIs priced in fractions of a cent. No subscriptions, no gas fees —
+          sign once, get results instantly, settled on Arc.
+        </p>
+        <div class="hero-actions">
+          <button class="btn btn-primary btn-lg" id="btn-get-started">
+            Explore Services
+          </button>
+          <a href="/documentation.html" class="btn btn-secondary btn-lg">
+            Documentation
+          </a>
+        </div>
+        <div class="hero-credit-note">
+          No credit card. No sign-up required.
+        </div>
+
+
+      </div>
+
+      <div class="hero-content-right">
+        <div class="hero-diagram-box">
+          <div class="diagram-eyebrow">TRANSACTION-FLOW</div>
+          <svg viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">
+            <path id="path-wallet-tx" d="M110,100 L210,100" fill="none"></path>
+            <path id="path-tx-result" d="M310,100 L410,100" fill="none"></path>
+
+            <rect x="10" y="85" width="100" height="30" rx="15" fill="#222025" stroke="#302D33" stroke-width="0.8">
+            </rect>
+            <text x="60" y="104" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#6B6570">Your
+              Agent</text>
+
+            <line x1="110" y1="100" x2="210" y2="100" stroke="#2C2930" stroke-width="0.8"></line>
+
+            <circle r="2.5" fill="#C4B8A8">
+              <animateMotion dur="1.8s" repeatCount="indefinite">
+                <mpath href="#path-wallet-tx"></mpath>
+              </animateMotion>
+              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.84;1" dur="1.8s"
+                repeatCount="indefinite"></animate>
+            </circle>
+
+            <rect x="210" y="83" width="100" height="34" rx="17" fill="#252228" stroke="#C4B8A8" stroke-width="0.9">
+            </rect>
+            <text x="260" y="104" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700"
+              fill="#E8E3DC">Noviq Arc</text>
+
+            <line x1="310" y1="100" x2="410" y2="100" stroke="#2C2930" stroke-width="0.8"></line>
+
+            <circle r="2.5" fill="#10B981">
+              <animateMotion dur="1.8s" repeatCount="indefinite">
+                <mpath href="#path-tx-result"></mpath>
+              </animateMotion>
+              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.84;1" dur="1.8s"
+                repeatCount="indefinite"></animate>
+            </circle>
+
+            <rect x="410" y="85" width="100" height="30" rx="15" fill="#18171A" stroke="#10B981" stroke-width="0.8">
+            </rect>
+            <text x="460" y="104" text-anchor="middle" font-family="Inter, sans-serif" font-size="11"
+              fill="#10B981">Instant API Result</text>
+          </svg>
+        </div>
+        <p class="hero-diagram-caption">Your agent signs a transaction, pays a fraction of a cent in USDC, and gets
+          instant API access.</p>
+      </div>
     </div>
-    <h1 class="hero-title">
-      Stop Paying for<br />
-      API Subscriptions
-    </h1>
-    <p class="hero-subtitle">
-      APIs priced in fractions of a cent. No subscriptions, no gas fees —
-      sign once, get results instantly, settled on Arc.
-    </p>
-    <div class="hero-actions">
-      <button class="btn btn-primary btn-lg" id="btn-get-started">
-        Explore Services
-        <svg class="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-          <polyline points="12 5 19 12 12 19"></polyline>
-        </svg>
-      </button>
-    </div>
-    <div class="hero-tech-stack">
-      ARC <span>·</span> CIRCLE <span>·</span> USDC <span>·</span> NANOPAYMENTS
+    <div class="section-manifesto">
+      <div class="manifesto-container">
+        <div class="manifesto-left">
+          <ul class="strikethrough-list">
+            <li>sign ups</li>
+            <li>credit cards</li>
+            <li>subscriptions</li>
+            <li>passwords</li>
+          </ul>
+        </div>
+      </div>
     </div>
   </header>
-
-
-  <section id="manifesto" class="section section-manifesto">
-    <div class="manifesto-container">
-      <div class="manifesto-left">
-        <ul class="strikethrough-list">
-          <li>sign ups</li>
-          <li>credit cards</li>
-          <li>api keys</li>
-          <li>subscriptions</li>
-          <li>passwords</li>
-        </ul>
-      </div>
-      <div class="manifesto-right">
-        <h2 class="manifesto-headline">Agents need APIs, not paywalls</h2>
-        <p class="manifesto-paragraph">
-          Modern AI is autonomous, but the web is stuck on manual logins and monthly subscriptions. Noviq lets your
-          agents bypass sign-ups entirely. They just sign a transaction, pay a fraction of a cent in USDC, and get
-          instant access.
-        </p>
-        <div class="manifesto-tagline">Code that pays for itself.</div>
-      </div>
-    </div>
-  </section>
 
 
   <section id="how-it-works" class="section section-how">
@@ -283,8 +318,11 @@
   <footer class="footer">
     <div class="footer-content">
       <div class="footer-links-left" style="grid-column: 1; display: flex; align-items: center;">
-        <a href="https://docs.arc.io/" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; gap: 6px; text-decoration: none; color: var(--text-secondary); font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <a href="https://docs.arc.io/" target="_blank" rel="noopener noreferrer"
+          style="display: flex; align-items: center; gap: 6px; text-decoration: none; color: var(--text-secondary); font-size: 0.9rem; transition: color 0.2s;"
+          onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
           </svg>
           Arc Docs
