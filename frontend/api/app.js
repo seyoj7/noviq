@@ -1,5 +1,7 @@
 const API_BASE = "";
 
+const MAX_API_KEYS = 2;
+
 const state = {
   userId: null,
   wallet: null,
@@ -69,10 +71,11 @@ function restoreWalletSession() {
     
     updateWalletUI();
     showConnectedState();
-    loadApiKeys();
+    showLoadingSkeleton();
 
-    // Silent refresh
-    fetch(`${API_BASE}/wallet`, {
+    // Fire key loading and wallet refresh in parallel
+    const keyLoad = loadApiKeys();
+    const walletRefresh = fetch(`${API_BASE}/wallet`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_id: state.userId }),
@@ -85,6 +88,8 @@ function restoreWalletSession() {
         updateWalletUI();
       })
       .catch((e) => console.error("Silent wallet refresh failed", e));
+
+    Promise.all([keyLoad, walletRefresh]);
   } catch (e) {
     console.error(e);
     showDisconnectedState();
@@ -250,6 +255,12 @@ async function handleGenerateApiKey() {
     return;
   }
 
+  const activeCount = state.apiKeys.filter((k) => !k.is_revoked).length;
+  if (activeCount >= MAX_API_KEYS) {
+    showToast(`Maximum of ${MAX_API_KEYS} active API keys. Revoke an existing key first.`, "warning");
+    return;
+  }
+
   const label = dom.apiKeyLabelInput ? dom.apiKeyLabelInput.value.trim() : "";
 
   if (dom.btnGenerateApiKey) {
@@ -323,6 +334,28 @@ async function loadApiKeys() {
   }
 }
 
+function showLoadingSkeleton() {
+  const listEl = dom.apiKeyList;
+  if (!listEl) return;
+  const emptyEl = dom.apiKeyListEmpty;
+  if (emptyEl) emptyEl.classList.add("hidden");
+
+  listEl.innerHTML = Array.from({ length: 3 }, () => `
+    <div class="api-key-item api-key-skeleton">
+      <div class="api-key-item-top">
+        <div class="api-key-item-info">
+          <span class="skeleton-bar" style="width:120px;height:14px"></span>
+          <span class="skeleton-bar" style="width:80px;height:12px"></span>
+        </div>
+        <span class="skeleton-bar" style="width:48px;height:18px;border-radius:9px"></span>
+      </div>
+      <div class="api-key-item-bottom">
+        <span class="skeleton-bar" style="width:160px;height:11px"></span>
+      </div>
+    </div>
+  `).join("");
+}
+
 function renderApiKeyList() {
   const listEl = dom.apiKeyList;
   const emptyEl = dom.apiKeyListEmpty;
@@ -380,6 +413,23 @@ function renderApiKeyList() {
       `;
     })
     .join("");
+
+  updateGenerateButton();
+}
+
+function updateGenerateButton() {
+  const activeCount = state.apiKeys.filter((k) => !k.is_revoked).length;
+  const atLimit = activeCount >= MAX_API_KEYS;
+
+  if (dom.btnGenerateApiKey) {
+    dom.btnGenerateApiKey.disabled = atLimit;
+    dom.btnGenerateApiKey.textContent = atLimit
+      ? `Limit reached (${MAX_API_KEYS}/${MAX_API_KEYS})`
+      : "Generate New Key";
+  }
+  if (dom.apiKeyLabelInput) {
+    dom.apiKeyLabelInput.disabled = atLimit;
+  }
 }
 
 async function handleRevokeApiKey(keyPrefix) {

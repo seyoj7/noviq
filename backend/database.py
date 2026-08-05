@@ -1,5 +1,7 @@
 import psycopg2
+import psycopg2.pool
 from psycopg2.extras import RealDictCursor
+from contextlib import contextmanager
 from datetime import datetime, timezone
 import logging
 
@@ -7,19 +9,64 @@ from backend.config import POSTGRES_URL
 
 logger = logging.getLogger(__name__)
 
-def get_db_conn():
+# ── Connection Pool ─────────────────────────────────────────────────
+# Lazily initialised; lives for the lifetime of the warm serverless
+# function instance.  SimpleConnectionPool is fine because Vercel
+# invocations are single-threaded.
+
+_pool: psycopg2.pool.SimpleConnectionPool | None = None
+
+
+def _get_pool() -> psycopg2.pool.SimpleConnectionPool | None:
+    """Return the shared connection pool, creating it on first call."""
+    global _pool
     if not POSTGRES_URL:
-        # If no DB URL is configured, we can't connect.
         return None
-    return psycopg2.connect(POSTGRES_URL)
+    if _pool is None or _pool.closed:
+        try:
+            _pool = psycopg2.pool.SimpleConnectionPool(
+                minconn=1,
+                maxconn=5,
+                dsn=POSTGRES_URL,
+            )
+            logger.info("Database connection pool created.")
+        except Exception as e:
+            logger.error("Failed to create connection pool: %s", e)
+            return None
+    return _pool
+
+
+@contextmanager
+def _borrow():
+    """Context manager: borrows a connection from the pool and returns it."""
+    pool = _get_pool()
+    if pool is None:
+        yield None
+        return
+    conn = pool.getconn()
+    try:
+        yield conn
+    finally:
+        pool.putconn(conn)
+
+
+# ── Schema bootstrap (runs at most once per process) ────────────────
+
+_db_initialized = False
+
 
 def init_db():
+    global _db_initialized
+    if _db_initialized:
+        return
     if not POSTGRES_URL:
         logger.warning("POSTGRES_URL not set. Database not initialized.")
         return
 
     try:
-        with get_db_conn() as conn:
+        with _borrow() as conn:
+            if conn is None:
+                return
             with conn.cursor() as cur:
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS wallets (
@@ -52,175 +99,146 @@ def init_db():
                     )
                 """)
             conn.commit()
+        _db_initialized = True
+        logger.info("Database schema initialised.")
     except Exception as e:
-        logger.error(f"Failed to initialize database: {e}")
+        logger.error("Failed to initialize database: %s", e)
 
 # Wallet Operations
 def get_wallet(user_id: str) -> str | None:
-    conn = get_db_conn()
-    if not conn: return None
-    
-    try:
-        with conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute("SELECT wallet_id FROM wallets WHERE user_id = %s", (user_id,))
-                row = cur.fetchone()
-                return row["wallet_id"] if row else None
-    finally:
-        conn.close()
+    with _borrow() as conn:
+        if conn is None:
+            return None
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("SELECT wallet_id FROM wallets WHERE user_id = %s", (user_id,))
+            row = cur.fetchone()
+            return row["wallet_id"] if row else None
 
 def save_wallet(user_id: str, wallet_id: str):
-    conn = get_db_conn()
-    if not conn: return
-    
-    try:
-        with conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    INSERT INTO wallets (user_id, wallet_id) VALUES (%s, %s)
-                    ON CONFLICT (user_id) DO UPDATE SET wallet_id = EXCLUDED.wallet_id
-                    """, 
-                    (user_id, wallet_id)
-                )
-    finally:
-        conn.close()
+    with _borrow() as conn:
+        if conn is None:
+            return
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO wallets (user_id, wallet_id) VALUES (%s, %s)
+                ON CONFLICT (user_id) DO UPDATE SET wallet_id = EXCLUDED.wallet_id
+                """,
+                (user_id, wallet_id)
+            )
+        conn.commit()
 
 # Transaction Operations
 def save_transaction(user_id: str, service_id: str, service_name: str, cost: float, status: str, tx_hash: str):
-    conn = get_db_conn()
-    if not conn: return
-    
-    try:
-        with conn:
-            with conn.cursor() as cur:
-                cur.execute("""
-                    INSERT INTO transactions (user_id, service_id, service_name, cost, status, tx_hash, created_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """, (
-                    user_id, 
-                    service_id, 
-                    service_name, 
-                    cost, 
-                    status, 
-                    tx_hash, 
-                    datetime.now(timezone.utc).isoformat()
-                ))
-    finally:
-        conn.close()
+    with _borrow() as conn:
+        if conn is None:
+            return
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO transactions (user_id, service_id, service_name, cost, status, tx_hash, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (
+                user_id,
+                service_id,
+                service_name,
+                cost,
+                status,
+                tx_hash,
+                datetime.now(timezone.utc).isoformat()
+            ))
+        conn.commit()
 
 def get_transactions(user_id: str) -> list[dict]:
-    conn = get_db_conn()
-    if not conn: return []
-    
-    try:
-        with conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute("SELECT * FROM transactions WHERE user_id = %s ORDER BY id DESC", (user_id,))
-                rows = cur.fetchall()
-                
-                # Format response keys to match what frontend app.js expects
-                return [
-                    {
-                        "agent": row["service_name"],
-                        "agentId": row["service_id"],
-                        "cost": row["cost"],
-                        "status": row["status"],
-                        "txHash": row["tx_hash"],
-                        "time": row["created_at"],
-                    }
-                    for row in rows
-                ]
-    finally:
-        conn.close()
+    with _borrow() as conn:
+        if conn is None:
+            return []
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("SELECT * FROM transactions WHERE user_id = %s ORDER BY id DESC", (user_id,))
+            rows = cur.fetchall()
+
+            # Format response keys to match what frontend app.js expects
+            return [
+                {
+                    "agent": row["service_name"],
+                    "agentId": row["service_id"],
+                    "cost": row["cost"],
+                    "status": row["status"],
+                    "txHash": row["tx_hash"],
+                    "time": row["created_at"],
+                }
+                for row in rows
+            ]
 
 
 # API Key Operations
 def save_api_key(key_hash: str, key_prefix: str, wallet_address: str, label: str = ""):
-    conn = get_db_conn()
-    if not conn: return
-
-    try:
-        with conn:
-            with conn.cursor() as cur:
-                cur.execute("""
-                    INSERT INTO api_keys (key_hash, key_prefix, wallet_address, label, created_at)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, (
-                    key_hash,
-                    key_prefix,
-                    wallet_address,
-                    label,
-                    datetime.now(timezone.utc).isoformat()
-                ))
-    finally:
-        conn.close()
+    with _borrow() as conn:
+        if conn is None:
+            return
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO api_keys (key_hash, key_prefix, wallet_address, label, created_at)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (
+                key_hash,
+                key_prefix,
+                wallet_address,
+                label,
+                datetime.now(timezone.utc).isoformat()
+            ))
+        conn.commit()
 
 
 def get_api_key(key_hash: str) -> dict | None:
     """Look up an API key by its hash. Returns None if not found or revoked."""
-    conn = get_db_conn()
-    if not conn: return None
-
-    try:
-        with conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute(
-                    "SELECT * FROM api_keys WHERE key_hash = %s AND is_revoked = FALSE",
-                    (key_hash,)
-                )
-                row = cur.fetchone()
-                return dict(row) if row else None
-    finally:
-        conn.close()
+    with _borrow() as conn:
+        if conn is None:
+            return None
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                "SELECT * FROM api_keys WHERE key_hash = %s AND is_revoked = FALSE",
+                (key_hash,)
+            )
+            row = cur.fetchone()
+            return dict(row) if row else None
 
 
 def get_api_keys_for_wallet(wallet_address: str) -> list[dict]:
     """Return all API keys (active and revoked) for a given wallet address."""
-    conn = get_db_conn()
-    if not conn: return []
-
-    try:
-        with conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute(
-                    "SELECT key_prefix, label, created_at, last_used_at, is_revoked "
-                    "FROM api_keys WHERE wallet_address = %s ORDER BY id DESC",
-                    (wallet_address,)
-                )
-                return [dict(row) for row in cur.fetchall()]
-    finally:
-        conn.close()
+    with _borrow() as conn:
+        if conn is None:
+            return []
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                "SELECT key_prefix, label, created_at, last_used_at, is_revoked "
+                "FROM api_keys WHERE wallet_address = %s ORDER BY id DESC",
+                (wallet_address,)
+            )
+            return [dict(row) for row in cur.fetchall()]
 
 
 def revoke_api_key(key_prefix: str, wallet_address: str) -> bool:
     """Revoke a key by prefix+wallet. Returns True if a key was actually revoked."""
-    conn = get_db_conn()
-    if not conn: return False
-
-    try:
-        with conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "UPDATE api_keys SET is_revoked = TRUE "
-                    "WHERE key_prefix = %s AND wallet_address = %s AND is_revoked = FALSE",
-                    (key_prefix, wallet_address)
-                )
-                return cur.rowcount > 0
-    finally:
-        conn.close()
+    with _borrow() as conn:
+        if conn is None:
+            return False
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE api_keys SET is_revoked = TRUE "
+                "WHERE key_prefix = %s AND wallet_address = %s AND is_revoked = FALSE",
+                (key_prefix, wallet_address)
+            )
+            conn.commit()
+            return cur.rowcount > 0
 
 
 def update_api_key_last_used(key_hash: str):
-    conn = get_db_conn()
-    if not conn: return
-
-    try:
-        with conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "UPDATE api_keys SET last_used_at = %s WHERE key_hash = %s",
-                    (datetime.now(timezone.utc).isoformat(), key_hash)
-                )
-    finally:
-        conn.close()
+    with _borrow() as conn:
+        if conn is None:
+            return
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE api_keys SET last_used_at = %s WHERE key_hash = %s",
+                (datetime.now(timezone.utc).isoformat(), key_hash)
+            )
+        conn.commit()

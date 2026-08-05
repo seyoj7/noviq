@@ -9,7 +9,7 @@ if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
 import httpx
-from fastapi import FastAPI, Depends, Header, HTTPException
+from fastapi import FastAPI, Depends, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -65,6 +65,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# ── Consistent error responses ──────────────────────────────────────
+# Always include "result" in the JSON body so clients that do
+# response.json()["result"] never crash with a KeyError.
+
+@app.exception_handler(HTTPException)
+async def unified_http_error(_request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "result": None,
+            "error": exc.detail,
+            "status_code": exc.status_code,
+        },
+    )
 
 
 # ── Public routes (no auth) ─────────────────────────────────────────
@@ -227,8 +242,19 @@ async def create_api_key(body: GenerateApiKeyRequest):
     """Generate a new API key for the given wallet address.
 
     The full key is returned **only once** in the response.
+    Each wallet may hold at most 2 active (non-revoked) keys.
     """
     wallet_addr = to_checksum_address(body.wallet_address)
+
+    # Enforce per-wallet limit of 2 active keys
+    existing = database.get_api_keys_for_wallet(wallet_addr)
+    active_count = sum(1 for k in existing if not k.get("is_revoked"))
+    if active_count >= 2:
+        raise HTTPException(
+            status_code=409,
+            detail="Maximum of 2 active API keys per wallet. Revoke an existing key first.",
+        )
+
     raw_key, key_hash, key_prefix = generate_api_key()
 
     database.save_api_key(

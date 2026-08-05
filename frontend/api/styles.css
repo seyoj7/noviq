@@ -88,3 +88,20 @@
 main.section::after {
   display: none;
 }
+
+/* ── Skeleton loading animation ────────────────────────────────────── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.12; }
+  50%      { opacity: 0.22; }
+}
+
+.api-key-skeleton {
+  pointer-events: none;
+}
+
+.skeleton-bar {
+  display: inline-block;
+  background: var(--text-muted-on-dark, #555);
+  border-radius: 4px;
+  animation: skeleton-pulse 1.2s ease-in-out infinite;
+}
