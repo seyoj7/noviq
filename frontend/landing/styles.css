@@ -511,10 +511,15 @@ h4 {
 .wallet-balance-chip {
   background: var(--bg-secondary);
   border: 1px solid var(--border-light);
-  padding: 6px 12px;
+  padding: 4px 12px;
+  height: 33px;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: 0.8rem;
+  line-height: 1.4;
   color: var(--text-primary);
   cursor: pointer;
   transition: background var(--transition-fast), border-color var(--transition-fast);
@@ -733,80 +738,167 @@ h4 {
   }
 }
 
-/* Feature Grid / Workflow */
-.features-grid {
+/* ═══ Workflow Pipeline ═══ */
+.workflow-pipeline {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: var(--space-md);
-  position: relative;
+  grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+  align-items: stretch;
+  gap: 0 var(--space-md);
 }
 
-.features-grid::before {
-  display: none;
+.wf-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--border-light);
+  flex-shrink: 0;
+  align-self: center;
 }
 
-.feature-card {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  padding: var(--space-lg) var(--space-md);
+.wf-step {
   background: var(--bg-secondary);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
+  padding: var(--space-lg) var(--space-md);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
   gap: var(--space-sm);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-  transition: transform var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+  height: 100%;
+  box-sizing: border-box;
 }
 
-.feature-card:hover {
-  transform: translateY(-3px);
-  background: var(--bg-primary);
-  border-color: var(--border-hover);
-  box-shadow: 0 8px 24px rgba(20, 20, 19, 0.08);
+.wf-step-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: 2px;
 }
 
-.feature-icon-wrapper {
+.wf-num {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  border-radius: 3px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+
+.wf-icon {
   color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 32px;
-  width: 32px;
-  margin-bottom: var(--space-xs);
   flex-shrink: 0;
 }
 
-.feature-card:hover .feature-icon-wrapper {
-  color: var(--accent-secondary);
-}
-
-.feature-title {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
+.wf-title {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
-  text-align: left;
+  margin: 0;
+  line-height: 1.2;
 }
 
-.step-num {
+.wf-inline-code {
   font-family: var(--font-mono);
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  margin-right: 4px;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--accent-secondary);
+  background: transparent;
+  padding: 0;
 }
 
-.feature-desc {
-  font-size: 0.825rem;
-  line-height: 1.45;
+.wf-desc {
+  font-size: 0.82rem;
+  line-height: 1.55;
   color: var(--text-secondary);
-  margin-bottom: 0;
-  text-align: left;
+  margin: 0;
 }
+
+.wf-desc code {
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.wf-desc strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.wf-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.wf-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+}
+
+.wf-code-chip {
+  background: var(--bg-dark);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.wf-code-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted-on-dark);
+}
+
+.wf-code-val {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-on-dark);
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+@media (max-width: 1024px) {
+  .workflow-pipeline {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+  }
+
+  .wf-connector {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .workflow-pipeline {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 
 /* Service Grid */
 .agents-grid {
@@ -853,13 +945,12 @@ h4 {
   border-radius: var(--radius-sm);
   display: flex;
   flex-direction: column;
-  transition: transform var(--transition-base), border-color var(--transition-base), background var(--transition-fast), box-shadow var(--transition-base);
+  transition: border-color var(--transition-base), background var(--transition-fast), box-shadow var(--transition-base);
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .agent-card:hover {
-  transform: translateY(-3px);
   background: var(--bg-primary);
   border-color: var(--border-hover);
   box-shadow: 0 8px 24px rgba(20, 20, 19, 0.08);
@@ -930,7 +1021,7 @@ h4 {
 
 .code-snippet-header {
   background: var(--bg-dark-header);
-  padding: 10px var(--space-lg);
+  padding: 6px var(--space-lg);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1283,7 +1374,7 @@ h4 {
   position: absolute;
   top: 76px;
   right: var(--space-xl);
-  width: 290px;
+  width: 275px;
   max-width: calc(100vw - var(--space-xl) * 2);
   padding: var(--space-md);
   border-radius: var(--radius-sm);
@@ -1371,7 +1462,7 @@ h4 {
 
 .footer {
   position: relative;
-  padding: var(--space-md) var(--space-xl);
+  padding: 8px var(--space-xl);
   background: var(--bg-primary);
 }
 

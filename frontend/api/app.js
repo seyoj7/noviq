@@ -15,7 +15,7 @@ const dom = {
   navbarWallet: $("#navbar-wallet"),
   btnConnectMain: $("#btn-connect-wallet-main"),
   btnConnectNav: $("#btn-connect-wallet"),
-  
+
   disconnectedState: $("#api-keys-disconnected"),
   connectedState: $("#api-keys-connected"),
 
@@ -26,13 +26,20 @@ const dom = {
   btnCopyNewKey: $("#btn-copy-new-key"),
   apiKeyList: $("#api-key-list"),
   apiKeyListEmpty: $("#api-key-list-empty"),
-  
+
   toastContainer: $("#toast-container"),
-  
+
   walletPanel: $("#wallet-panel"),
   walletBackdrop: $("#wallet-backdrop"),
   walletPanelBody: $("#wallet-panel-body"),
   btnDisconnectWallet: $("#btn-disconnect-wallet"),
+
+  apiKeyModal: $("#api-key-modal"),
+  apiKeyModalValue: $("#api-key-modal-value"),
+  apiKeyModalBackdrop: $("#api-key-modal-backdrop"),
+  btnModalClose: $("#btn-modal-close"),
+  btnModalDone: $("#btn-modal-done"),
+  btnModalCopy: $("#btn-modal-copy"),
 };
 
 document.addEventListener("DOMContentLoaded", init);
@@ -45,18 +52,23 @@ function init() {
 function bindEvents() {
   if (dom.btnConnectMain) dom.btnConnectMain.addEventListener("click", handleConnectWallet);
   if (dom.btnConnectNav) dom.btnConnectNav.addEventListener("click", handleConnectWallet);
-  
+
   if (dom.btnGenerateApiKey) dom.btnGenerateApiKey.addEventListener("click", handleGenerateApiKey);
   if (dom.btnCopyNewKey) dom.btnCopyNewKey.addEventListener("click", handleCopyNewKey);
-  
+
   if (dom.btnDisconnectWallet) dom.btnDisconnectWallet.addEventListener("click", handleDisconnectWallet);
   if (dom.walletBackdrop) dom.walletBackdrop.addEventListener("click", closeWalletPanel);
+
+  if (dom.btnModalClose) dom.btnModalClose.addEventListener("click", closeApiKeyModal);
+  if (dom.btnModalDone) dom.btnModalDone.addEventListener("click", closeApiKeyModal);
+  if (dom.apiKeyModalBackdrop) dom.apiKeyModalBackdrop.addEventListener("click", closeApiKeyModal);
+  if (dom.btnModalCopy) dom.btnModalCopy.addEventListener("click", handleModalCopy);
 }
 
 function restoreWalletSession() {
   const savedWallet = localStorage.getItem("noviq_wallet");
   const savedApiKey = localStorage.getItem("noviq_api_key");
-  
+
   if (!savedWallet) {
     showDisconnectedState();
     return;
@@ -68,7 +80,7 @@ function restoreWalletSession() {
     if (savedApiKey) {
       state.apiKey = savedApiKey;
     }
-    
+
     updateWalletUI();
     showConnectedState();
     showLoadingSkeleton();
@@ -124,7 +136,7 @@ async function handleConnectWallet() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_id: state.userId }),
     });
-    
+
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
     state.wallet = await resp.json();
@@ -167,15 +179,10 @@ function showConnectedState() {
 function updateWalletUI() {
   if (!state.wallet) return;
 
-  const hasApiKey = !!state.apiKey;
-  const keyBadge = hasApiKey
-    ? `<span class="navbar-key-badge" title="API key active">🔑</span>`
-    : "";
-
   dom.navbarWallet.innerHTML = `
     <div class="navbar-wallet-info">
       <div class="wallet-address-chip" id="nav-wallet-address" title="${state.wallet.user_id}">
-        ${truncateAddress(state.wallet.user_id)} ${keyBadge}
+        ${truncateAddress(state.wallet.user_id)}
       </div>
     </div>
   `;
@@ -255,13 +262,18 @@ async function handleGenerateApiKey() {
     return;
   }
 
+  const label = dom.apiKeyLabelInput ? dom.apiKeyLabelInput.value.trim() : "";
+  if (!label) {
+    showToast("Please enter a name for your key.", "warning");
+    if (dom.apiKeyLabelInput) dom.apiKeyLabelInput.focus();
+    return;
+  }
+
   const activeCount = state.apiKeys.filter((k) => !k.is_revoked).length;
   if (activeCount >= MAX_API_KEYS) {
     showToast(`Maximum of ${MAX_API_KEYS} active API keys. Revoke an existing key first.`, "warning");
     return;
   }
-
-  const label = dom.apiKeyLabelInput ? dom.apiKeyLabelInput.value.trim() : "";
 
   if (dom.btnGenerateApiKey) {
     dom.btnGenerateApiKey.disabled = true;
@@ -288,16 +300,11 @@ async function handleGenerateApiKey() {
     state.apiKey = data.api_key;
     localStorage.setItem("noviq_api_key", data.api_key);
 
-    if (dom.apiKeyCreated && dom.apiKeyCreatedValue) {
-      dom.apiKeyCreatedValue.textContent = data.api_key;
-      dom.apiKeyCreated.classList.remove("hidden");
-    }
-
     if (dom.apiKeyLabelInput) dom.apiKeyLabelInput.value = "";
 
-    showToast("API key generated! Copy it now.", "success");
     updateWalletUI();
     await loadApiKeys();
+    openApiKeyModal(data.api_key);
   } catch (err) {
     console.error("Generate API key error:", err);
     showToast(err.message || "Failed to generate API key.", "error");
@@ -315,6 +322,29 @@ function handleCopyNewKey() {
     navigator.clipboard.writeText(value);
     showToast("API key copied to clipboard!", "success");
   }
+}
+
+function openApiKeyModal(apiKey) {
+  if (dom.apiKeyModalValue) dom.apiKeyModalValue.textContent = apiKey;
+  if (dom.apiKeyModal) dom.apiKeyModal.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeApiKeyModal() {
+  if (dom.apiKeyModal) dom.apiKeyModal.classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+function handleModalCopy() {
+  const value = dom.apiKeyModalValue?.textContent;
+  if (!value) return;
+  navigator.clipboard.writeText(value).then(() => {
+    if (dom.btnModalCopy) {
+      const orig = dom.btnModalCopy.innerHTML;
+      dom.btnModalCopy.textContent = "Copied!";
+      setTimeout(() => { dom.btnModalCopy.innerHTML = orig; }, 1800);
+    }
+  });
 }
 
 async function loadApiKeys() {
@@ -361,7 +391,10 @@ function renderApiKeyList() {
   const emptyEl = dom.apiKeyListEmpty;
   if (!listEl) return;
 
-  if (state.apiKeys.length === 0) {
+  // Only show active (non-revoked) keys
+  const activeKeys = state.apiKeys.filter((k) => !k.is_revoked);
+
+  if (activeKeys.length === 0) {
     listEl.innerHTML = "";
     if (emptyEl) {
       emptyEl.classList.remove("hidden");
@@ -372,16 +405,16 @@ function renderApiKeyList() {
 
   if (emptyEl) emptyEl.classList.add("hidden");
 
-  listEl.innerHTML = state.apiKeys
+  listEl.innerHTML = activeKeys
     .map((key) => {
       const isActive = !key.is_revoked;
       const statusClass = isActive ? "active" : "revoked";
       const statusLabel = isActive ? "Active" : "Revoked";
       const lastUsed = key.last_used_at
         ? new Date(key.last_used_at).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          })
+          month: "short",
+          day: "numeric",
+        })
         : "Never";
       const created = new Date(key.created_at).toLocaleDateString("en-US", {
         month: "short",
@@ -403,11 +436,10 @@ function renderApiKeyList() {
           </div>
           <div class="api-key-item-bottom">
             <span class="api-key-item-meta">Created ${created} · Last used ${lastUsed}</span>
-            ${
-              isActive
-                ? `<button class="btn btn-ghost btn-xs api-key-revoke-btn" onclick="handleRevokeApiKey('${escapeJsString(key.key_prefix)}')">Revoke</button>`
-                : ""
-            }
+            ${isActive
+          ? `<button class="btn btn-ghost btn-xs api-key-revoke-btn" onclick="handleRevokeApiKey('${escapeJsString(key.key_prefix)}')">Revoke</button>`
+          : ""
+        }
           </div>
         </div>
       `;
@@ -453,8 +485,10 @@ async function handleRevokeApiKey(keyPrefix) {
       updateWalletUI();
     }
 
+    // Remove immediately from local state — no round-trip needed
+    state.apiKeys = state.apiKeys.filter((k) => k.key_prefix !== keyPrefix);
+    renderApiKeyList();
     showToast("API key revoked.", "info");
-    await loadApiKeys();
   } catch (err) {
     console.error("Revoke API key error:", err);
     showToast(err.message || "Failed to revoke API key.", "error");

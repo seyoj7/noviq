@@ -1,6 +1,8 @@
 /* API Keys Page — Dedicated Styles */
+/* Overrides dark-theme colors from the base stylesheet so
+   everything is readable on the light glass-panel background. */
 
-/* Disconnected state card */
+/* ── Disconnected state card ──────────────────────────────────────── */
 .api-keys-disconnected {
   display: flex;
   flex-direction: column;
@@ -14,61 +16,135 @@
 .api-keys-disconnected h3 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text-on-dark);
+  color: var(--text-primary);
   margin: 0 0 var(--space-sm);
 }
 
 .api-keys-disconnected p {
   font-size: 0.9rem;
-  color: var(--text-muted-on-dark);
+  color: var(--text-secondary);
   margin: 0 0 var(--space-lg);
   max-width: 380px;
 }
 
-/* Page header text overrides */
-.section-eyebrow {
-  font-size: 1.5rem; /* Increased size */
-  font-weight: 800;  /* Make it bold */
-  color: var(--text-primary);
-  margin-bottom: var(--space-md);
+.api-keys-disconnected svg {
+  color: var(--text-secondary) !important;
 }
 
-/* Override list height for full-page layout */
+/* ── Page header text ─────────────────────────────────────────────── */
+.section-header {
+  text-align: center;
+  margin-bottom: var(--space-2xl);
+}
+
+.section-header .section-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  margin-bottom: var(--space-xs);
+}
+
+.section-header .section-title {
+  font-family: var(--font-sans);
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-xs) 0;
+  line-height: 1.15;
+}
+
+.section-header .section-subtitle {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+/* ── Generate key form ────────────────────────────────────────────── */
+.api-keys-section .api-key-label-input {
+  background: var(--bg-primary);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+.api-keys-section .api-key-label-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.api-keys-section .api-key-label-input:focus {
+  border-color: var(--accent-secondary);
+}
+
+/* ── Newly created key banner ─────────────────────────────────────── */
+.api-keys-section .api-key-created-value {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+/* ── "Your Keys" title ────────────────────────────────────────────── */
+.api-keys-section .api-keys-title {
+  color: var(--text-primary);
+}
+
+/* ── Key list layout ──────────────────────────────────────────────── */
 .api-keys-section .api-key-list {
   max-height: none;
 }
 
-/* Override font sizes for full-page readability */
+.api-keys-section .api-key-list-empty p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* ── Individual key items ─────────────────────────────────────────── */
 .api-keys-section .api-key-item {
+  background: var(--bg-primary);
+  border-color: var(--border-light);
   padding: var(--space-md) var(--space-lg);
+}
+
+.api-keys-section .api-key-item:hover {
+  background: var(--bg-secondary);
+}
+
+.api-keys-section .api-key-item.revoked {
+  opacity: 0.55;
 }
 
 .api-keys-section .api-key-item-label {
   font-size: 0.9rem;
+  color: var(--text-primary);
 }
 
 .api-keys-section .api-key-item-prefix {
   font-size: 0.78rem;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
 }
 
 .api-keys-section .api-key-item-status {
   font-size: 0.75rem;
+  text-align: right;
 }
 
 .api-keys-section .api-key-item-meta {
   font-size: 0.75rem;
-}
-
-.api-keys-section .api-key-list-empty p {
-  font-size: 0.9rem;
+  color: var(--text-secondary);
 }
 
 .api-keys-section .api-key-revoke-btn {
   font-size: 0.78rem !important;
-  padding: 4px 10px !important;
+  padding: 4px 0 !important;
+  text-align: right;
+  margin-left: auto;
 }
 
-/* Responsive tweaks */
+/* ── Responsive tweaks ────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .api-key-generate {
     flex-direction: column;
@@ -91,8 +167,15 @@ main.section::after {
 
 /* ── Skeleton loading animation ────────────────────────────────────── */
 @keyframes skeleton-pulse {
-  0%, 100% { opacity: 0.12; }
-  50%      { opacity: 0.22; }
+
+  0%,
+  100% {
+    opacity: 0.08;
+  }
+
+  50% {
+    opacity: 0.18;
+  }
 }
 
 .api-key-skeleton {
@@ -101,7 +184,132 @@ main.section::after {
 
 .skeleton-bar {
   display: inline-block;
-  background: var(--text-muted-on-dark, #555);
+  background: var(--text-tertiary);
   border-radius: 4px;
   animation: skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+/* ── API Key Created Modal ──────────────────────────────────────────── */
+.api-key-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.api-key-modal.open {
+  display: flex;
+}
+
+.api-key-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 20, 19, 0.4);
+  backdrop-filter: blur(4px);
+}
+
+.api-key-modal-box {
+  position: relative;
+  z-index: 1;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl);
+  width: min(580px, calc(100vw - 2rem));
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.api-key-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.api-key-modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.api-key-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  transition: color var(--transition-fast);
+}
+
+.api-key-modal-close:hover {
+  color: var(--text-primary);
+}
+
+.api-key-modal-message {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-lg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.api-key-modal-message strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.api-key-modal-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  margin-bottom: var(--space-lg);
+}
+
+.api-key-modal-value {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: all;
+  min-width: 0;
+}
+
+.api-key-modal-copy {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem !important;
+}
+
+.api-key-modal-footer {
+  display: flex;
+  justify-content: flex-end;
 }

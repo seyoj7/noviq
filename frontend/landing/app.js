@@ -466,15 +466,10 @@ async function handleConnectWallet() {
 function updateWalletUI() {
   if (!state.wallet) return;
 
-  const hasApiKey = !!state.apiKey;
-  const keyBadge = hasApiKey
-    ? `<span class="navbar-key-badge" title="API key active">🔑</span>`
-    : "";
-
   dom.navbarWallet.innerHTML = `
     <div class="navbar-wallet-info">
       <div class="wallet-address-chip" id="nav-wallet-address" title="${state.wallet.user_id}">
-        ${truncateAddress(state.wallet.user_id)} ${keyBadge}
+        ${truncateAddress(state.wallet.user_id)}
       </div>
     </div>
   `;
@@ -509,11 +504,6 @@ function openWalletPanel() {
       <div class="wallet-detail-value-wrapper wallet-detail-value-wrapper--static">
         <span class="wallet-detail-value" title="Arc Testnet">Arc Testnet</span>
       </div>
-    </div>
-    <div class="wallet-disclaimer">
-      <p>
-        This is a developer-controlled Circle wallet created for you automatically.
-      </p>
     </div>
   `;
 

@@ -246,6 +246,9 @@ async def create_api_key(body: GenerateApiKeyRequest):
     """
     wallet_addr = to_checksum_address(body.wallet_address)
 
+    if not body.label or not body.label.strip():
+        raise HTTPException(status_code=400, detail="A key label is required.")
+
     # Enforce per-wallet limit of 2 active keys
     existing = database.get_api_keys_for_wallet(wallet_addr)
     active_count = sum(1 for k in existing if not k.get("is_revoked"))
