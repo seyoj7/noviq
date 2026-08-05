@@ -172,7 +172,10 @@ h4 {
   padding-top: var(--space-3xl);
 }
 
-.section-services::after {
+.section-services::after,
+.section-snippet::after,
+.section-workspace::after,
+.section-history::after {
   display: none;
 }
 
@@ -539,7 +542,7 @@ h4 {
 .hero-content-wrapper {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-4xl);
+  gap: var(--space-3xl);
   max-width: var(--max-width);
   width: 100%;
   align-items: center;
@@ -558,7 +561,8 @@ h4 {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 600px;
+  max-width: 520px;
+  margin-left: auto;
 }
 
 .hero-eyebrow {
@@ -667,21 +671,49 @@ h4 {
 .hero-diagram-box {
   background: var(--bg-dark);
   border: 1px solid var(--border-dark);
-  padding: 18px 14px 22px;
+  padding: 14px 16px 18px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
   width: 100%;
   border-radius: var(--radius-sm);
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.diagram-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
 
 .diagram-eyebrow {
   font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 600;
+  color: #B8B2A8;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  margin-bottom: 14px;
   margin-left: 2px;
+}
+
+.diagram-protocol-badges {
+  display: flex;
+  gap: 6px;
+}
+
+.protocol-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #D0C9B9;
+  border: 1px solid #4A454E;
+}
+
+.diagram-svg {
+  margin-bottom: 0;
 }
 
 .hero-diagram-caption {
@@ -1338,9 +1370,20 @@ h4 {
 }
 
 .footer {
-  border-top: 1px solid var(--border-light);
+  position: relative;
   padding: var(--space-md) var(--space-xl);
   background: var(--bg-primary);
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 1px;
+  background-color: var(--border-light);
 }
 
 .footer-content {
@@ -1719,8 +1762,15 @@ h4 {
 }
 
 @keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Key list */

@@ -34,7 +34,6 @@
       <a href="#how-it-works">Workflow</a>
       <a href="/api/">API Keys</a>
       <a href="#history">Logs</a>
-      <a href="/documentation.html">Docs</a>
     </div>
     <div class="navbar-controls">
       <a href="https://faucet.circle.com/" target="_blank" class="btn btn-secondary btn-sm" id="btn-faucet"
@@ -71,7 +70,7 @@
           </a>
         </div>
         <div class="hero-credit-note">
-          No credit card. No sign-up required.
+          ARC <span style="font-size: 0.65em; vertical-align: middle; opacity: 0.7; margin: 0 4px;">&bull;</span> CIRCLE <span style="font-size: 0.65em; vertical-align: middle; opacity: 0.7; margin: 0 4px;">&bull;</span> USDC <span style="font-size: 0.65em; vertical-align: middle; opacity: 0.7; margin: 0 4px;">&bull;</span> NANOPAYMENTS
         </div>
 
 
@@ -79,49 +78,133 @@
 
       <div class="hero-content-right">
         <div class="hero-diagram-box">
-          <div class="diagram-eyebrow">TRANSACTION-FLOW</div>
-          <svg viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">
-            <path id="path-wallet-tx" d="M110,100 L210,100" fill="none"></path>
-            <path id="path-tx-result" d="M310,100 L410,100" fill="none"></path>
+          <div class="diagram-header">
+            <div class="diagram-eyebrow">TRANSACTION-FLOW</div>
+            <div class="diagram-protocol-badges">
+              <span class="protocol-badge">x402</span>
+              <span class="protocol-badge">EIP-3009</span>
+              <span class="protocol-badge badge-circle">Circle</span>
+              <span class="protocol-badge badge-usdc">USDC</span>
+            </div>
+          </div>
 
-            <rect x="10" y="85" width="100" height="30" rx="15" fill="#222025" stroke="#302D33" stroke-width="0.8">
-            </rect>
-            <text x="60" y="104" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#6B6570">Your
-              Agent</text>
+          <svg viewBox="0 0 510 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block"
+            class="diagram-svg">
+            <defs>
+              <marker id="arr-m" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5"
+                orient="auto-start-auto">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#6B6570" />
+              </marker>
+              <marker id="arr-g" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5"
+                orient="auto-start-auto">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#34D399" />
+              </marker>
+              <marker id="arr-a" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5"
+                orient="auto-start-auto">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#D0C9B9" />
+              </marker>
+              <marker id="arr-blue" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5"
+                orient="auto-start-auto">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#60A5FA" />
+              </marker>
+            </defs>
 
-            <line x1="110" y1="100" x2="210" y2="100" stroke="#2C2930" stroke-width="0.8"></line>
+            <!-- ═══ ROW 1: Request Layer ═══ -->
+            <text x="16" y="20" font-family="'JetBrains Mono', monospace" font-size="9" fill="#B8B2A8"
+              letter-spacing="0.08em" font-weight="700">01 REQUEST</text>
+            <line x1="90" y1="15" x2="494" y2="15" stroke="#4A454E" stroke-width="0.75" />
 
-            <circle r="2.5" fill="#C4B8A8">
-              <animateMotion dur="1.8s" repeatCount="indefinite">
-                <mpath href="#path-wallet-tx"></mpath>
-              </animateMotion>
-              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.84;1" dur="1.8s"
-                repeatCount="indefinite"></animate>
-            </circle>
+            <!-- Agent node -->
+            <rect x="16" y="40" width="120" height="38" rx="5" fill="#252228" stroke="#4A454E" stroke-width="1" />
+            <text x="76" y="64" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700"
+              fill="#FFFFFF">api_call()</text>
 
-            <rect x="210" y="83" width="100" height="34" rx="17" fill="#252228" stroke="#C4B8A8" stroke-width="0.9">
-            </rect>
-            <text x="260" y="104" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700"
-              fill="#E8E3DC">Noviq Arc</text>
+            <!-- Arrow: Agent → Noviq -->
+            <line x1="136" y1="59" x2="188" y2="59" stroke="#6B6570" stroke-width="1.2" stroke-dasharray="4 3"
+              marker-end="url(#arr-a)" />
 
-            <line x1="310" y1="100" x2="410" y2="100" stroke="#2C2930" stroke-width="0.8"></line>
+            <!-- Noviq node (central, prominent) -->
+            <rect x="195" y="40" width="120" height="38" rx="5" fill="#252228" stroke="#4A454E" stroke-width="1" />
+            <text x="255" y="64" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700"
+              fill="#FFFFFF">Noviq</text>
 
-            <circle r="2.5" fill="#10B981">
-              <animateMotion dur="1.8s" repeatCount="indefinite">
-                <mpath href="#path-tx-result"></mpath>
-              </animateMotion>
-              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.84;1" dur="1.8s"
-                repeatCount="indefinite"></animate>
-            </circle>
+            <!-- Arrow: Noviq → 402 challenge -->
+            <line x1="315" y1="59" x2="367" y2="59" stroke="#6B6570" stroke-width="1.2" stroke-dasharray="4 3"
+              marker-end="url(#arr-a)" />
 
-            <rect x="410" y="85" width="100" height="30" rx="15" fill="#18171A" stroke="#10B981" stroke-width="0.8">
-            </rect>
-            <text x="460" y="104" text-anchor="middle" font-family="Inter, sans-serif" font-size="11"
-              fill="#10B981">Instant API Result</text>
+            <!-- 402 / x402 node -->
+            <rect x="374" y="40" width="120" height="38" rx="5" fill="#252228" stroke="#4A454E" stroke-width="1" />
+            <text x="434" y="55" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5"
+              font-weight="700" fill="#FFFFFF">x402</text>
+            <text x="434" y="68" text-anchor="middle" font-family="Inter, sans-serif" font-size="8.5" fill="#D0C9B9"
+              font-weight="500">Sign &amp; Authorize</text>
+
+            <!-- ═══ ROW 2: Payment Layer ═══ -->
+            <text x="16" y="125" font-family="'JetBrains Mono', monospace" font-size="9" fill="#B8B2A8"
+              letter-spacing="0.08em" font-weight="700">02 PAYMENT</text>
+            <line x1="90" y1="120" x2="494" y2="120" stroke="#4A454E" stroke-width="0.75" />
+
+            <!-- EIP-3009 verify node -->
+            <rect x="16" y="145" width="120" height="38" rx="5" fill="#252228" stroke="#4A454E" stroke-width="1" />
+            <text x="76" y="160" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5"
+              font-weight="700" fill="#FFFFFF">EIP-3009</text>
+            <text x="76" y="173" text-anchor="middle" font-family="Inter, sans-serif" font-size="8.5" fill="#D0C9B9"
+              font-weight="500">Verify Signature</text>
+
+            <!-- Arrow: EIP-3009 → Circle -->
+            <line x1="136" y1="164" x2="188" y2="164" stroke="#6B6570" stroke-width="1.2" stroke-dasharray="4 3"
+              marker-end="url(#arr-a)" />
+
+            <!-- Circle Wallets node (prominent) -->
+            <rect x="195" y="145" width="120" height="38" rx="5" fill="#252228" stroke="#4A454E" stroke-width="1" />
+            <text x="255" y="160" text-anchor="middle" font-family="Inter, sans-serif" font-size="10.5"
+              font-weight="700" fill="#FFFFFF">Circle</text>
+            <text x="255" y="173" text-anchor="middle" font-family="Inter, sans-serif" font-size="8.5" fill="#D0C9B9"
+              font-weight="500">Programmable Wallets</text>
+
+            <!-- Arrow: Circle → USDC Transfer -->
+            <line x1="315" y1="164" x2="367" y2="164" stroke="#6B6570" stroke-width="1.2" stroke-dasharray="4 3"
+              marker-end="url(#arr-a)" />
+
+            <!-- USDC Settlement node -->
+            <rect x="374" y="145" width="120" height="38" rx="5" fill="#252228" stroke="#4A454E" stroke-width="1" />
+            <text x="434" y="160" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5"
+              font-weight="700" fill="#FFFFFF">USDC</text>
+            <text x="434" y="173" text-anchor="middle" font-family="Inter, sans-serif" font-size="8.5" fill="#D0C9B9"
+              font-weight="500">transfer() on Arc</text>
+
+            <!-- ═══ ROW 3: Result Layer ═══ -->
+            <text x="16" y="230" font-family="'JetBrains Mono', monospace" font-size="9" fill="#B8B2A8"
+              letter-spacing="0.08em" font-weight="700">03 RESULT</text>
+            <line x1="80" y1="225" x2="494" y2="225" stroke="#4A454E" stroke-width="0.75" />
+
+            <!-- Tx Confirmed node -->
+            <rect x="16" y="250" width="120" height="38" rx="5" fill="#252228" stroke="#4A454E" stroke-width="1" />
+            <text x="76" y="274" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700"
+              fill="#FFFFFF">TX Confirmed ✓</text>
+
+            <!-- Arrow: Confirmed → AI Service -->
+            <line x1="136" y1="269" x2="188" y2="269" stroke="#6B6570" stroke-width="1.2" stroke-dasharray="4 3"
+              marker-end="url(#arr-a)" />
+
+            <!-- AI Service runs node -->
+            <rect x="195" y="250" width="120" height="38" rx="5" fill="#252228" stroke="#4A454E" stroke-width="1" />
+            <text x="255" y="274" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700"
+              fill="#FFFFFF">API Service Runs</text>
+
+            <!-- Arrow: AI → Result -->
+            <line x1="315" y1="269" x2="367" y2="269" stroke="#6B6570" stroke-width="1.2" stroke-dasharray="4 3"
+              marker-end="url(#arr-a)" />
+
+            <!-- JSON Result -->
+            <rect x="374" y="250" width="120" height="38" rx="5" fill="#252228" stroke="#4A454E" stroke-width="1" />
+            <text x="434" y="274" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11"
+              font-weight="700" fill="#FFFFFF">{JSON}</text>
+
           </svg>
         </div>
-        <p class="hero-diagram-caption">Your agent signs a transaction, pays a fraction of a cent in USDC, and gets
-          instant API access.</p>
+        <p class="hero-diagram-caption">Your agent signs a transaction, pays a fraction of a cent in USDC via Circle,
+          settled instantly on Arc — zero gas fees.</p>
       </div>
     </div>
     <div class="section-manifesto">
@@ -317,7 +400,6 @@
     </div>
   </section>
 
-
   <footer class="footer">
     <div class="footer-content">
       <div class="footer-links-left" style="grid-column: 1; display: flex; align-items: center;">
@@ -346,7 +428,6 @@
       </div>
     </div>
   </footer>
-
 
   <div id="wallet-panel" class="wallet-panel">
     <div class="wallet-panel-backdrop" id="wallet-backdrop"></div>
