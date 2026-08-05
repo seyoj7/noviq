@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initMobileMenu();
   initCopyCode();
   initScrollSpy();
+  initThemeToggle();
 });
 
 function initMobileMenu() {
@@ -79,6 +80,35 @@ function initScrollSpy() {
   document.querySelectorAll("#docs-article h1, #docs-article h2, #docs-article h3").forEach(heading => {
     if (heading.id) {
       observer.observe(heading);
+    }
+  });
+}
+
+function initThemeToggle() {
+  const toggleBtn = document.getElementById("theme-toggle");
+  const iconMoon = document.getElementById("theme-icon-moon");
+  const iconSun = document.getElementById("theme-icon-sun");
+
+  if (!toggleBtn) return;
+
+  const currentTheme = localStorage.getItem("noviq_theme") || "light";
+  if (currentTheme === "dark") {
+    iconMoon.style.display = "none";
+    iconSun.style.display = "block";
+  }
+
+  toggleBtn.addEventListener("click", () => {
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    if (isDark) {
+      document.documentElement.removeAttribute("data-theme");
+      localStorage.setItem("noviq_theme", "light");
+      iconMoon.style.display = "block";
+      iconSun.style.display = "none";
+    } else {
+      document.documentElement.setAttribute("data-theme", "dark");
+      localStorage.setItem("noviq_theme", "dark");
+      iconMoon.style.display = "none";
+      iconSun.style.display = "block";
     }
   });
 }

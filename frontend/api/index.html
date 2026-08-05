@@ -16,6 +16,11 @@
 
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/api/styles.css" />
+  <script>
+    if (localStorage.getItem("noviq_theme") === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  </script>
 </head>
 
 <body>

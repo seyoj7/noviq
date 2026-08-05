@@ -61,7 +61,42 @@ function init() {
     renderHistory();
   }
 
+  initThemeToggle();
   initScrollEffects();
+}
+
+function initThemeToggle() {
+  const toggleBtn = document.getElementById('theme-toggle');
+  const moonIcon = document.getElementById('theme-icon-moon');
+  const sunIcon = document.getElementById('theme-icon-sun');
+  
+  if (!toggleBtn) return;
+
+  function updateIcon(theme) {
+    if (theme === 'dark') {
+      moonIcon.style.display = 'none';
+      sunIcon.style.display = 'block';
+    } else {
+      moonIcon.style.display = 'block';
+      sunIcon.style.display = 'none';
+    }
+  }
+
+  updateIcon(document.documentElement.getAttribute('data-theme'));
+
+  toggleBtn.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    if (newTheme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('noviq_theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('noviq_theme', 'light');
+    }
+    updateIcon(newTheme);
+  });
 }
 
 function updateSnippetDomain() {

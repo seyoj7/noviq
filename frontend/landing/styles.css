@@ -5,8 +5,12 @@
   --bg-tertiary: #EBE5DA;
   --bg-elevated: #E2DACD;
   --bg-dark: #18171A;
+  --btn-primary-hover: #2C2B29;
   --bg-dark-card: #222025;
   --bg-dark-header: #201F24;
+  --bg-navbar: rgba(250, 248, 245, 0.92);
+  --logo-filter: brightness(0);
+  --strikethrough-color: rgba(20, 20, 19, 0.25);
 
   --border-light: #D0C9B9;
   --border-hover: #141413;
@@ -49,6 +53,37 @@
 
   --transition-fast: 0.15s ease-out;
   --transition-base: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #18171A;
+  --bg-secondary: #222025;
+  --bg-tertiary: #302D33;
+  --bg-elevated: #3A363D;
+  --bg-dark: #18171A;
+  --btn-primary-hover: #D8D2C9;
+  --bg-dark-card: #222025;
+  --bg-dark-header: #201F24;
+  --bg-navbar: rgba(24, 23, 26, 0.92);
+
+  --logo-filter: brightness(0) invert(1);
+  --strikethrough-color: #000000;
+
+  --border-light: #4A454E;
+  --border-hover: #D0C9B9;
+  --border-dark: #302D33;
+
+  --accent-primary: #FAF8F5;
+  --accent-secondary: #E87A47;
+  --accent-glow: rgba(232, 122, 71, 0.12);
+
+  --text-primary: #FAF8F5;
+  --text-secondary: #B8B2A8;
+  --text-tertiary: #8C857B;
+  --text-inverse: #141413;
+
+  --text-on-dark: #E8E3DC;
+  --text-muted-on-dark: #9A949C;
 }
 
 * {
@@ -227,7 +262,7 @@ h4 {
   font-weight: 400;
   color: #B5AE9E;
   text-decoration: line-through;
-  text-decoration-color: rgba(20, 20, 19, 0.25);
+  text-decoration-color: var(--strikethrough-color);
   text-decoration-thickness: 2px;
   letter-spacing: -0.01em;
   line-height: 1.2;
@@ -382,9 +417,9 @@ h4 {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2C2B29;
+  background: var(--btn-primary-hover);
   color: var(--bg-primary);
-  border-color: #2C2B29;
+  border-color: var(--btn-primary-hover);
 }
 
 .btn-outline {
@@ -437,7 +472,7 @@ h4 {
   gap: var(--space-xl);
   padding: 14px var(--space-xl);
   width: 100%;
-  background: rgba(250, 248, 245, 0.92);
+  background: var(--bg-navbar);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-light);
@@ -456,7 +491,7 @@ h4 {
   margin-top: 2px;
   height: 26px;
   width: auto;
-  filter: brightness(0);
+  filter: var(--logo-filter);
 }
 
 .brand-icon {
@@ -625,9 +660,7 @@ h4 {
 }
 
 .hero-actions .btn-primary:hover:not(:disabled) {
-  background: #2C2B29;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(20, 20, 19, 0.18);
+  background: var(--btn-primary-hover);
   color: var(--bg-primary);
 }
 
