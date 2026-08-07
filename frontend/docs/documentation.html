@@ -135,11 +135,12 @@ print(response.json()["result"])</code></pre>
           </div>
 
           <h2 id="authentication">Authentication</h2>
-          <p>Noviq uses <strong>API key-based authentication</strong>. To get started:</p>
+          <p>Noviq uses <strong>API key-based authentication</strong> with <strong>wallet signature verification</strong> for key management. To get started:</p>
 
           <ol>
             <li><strong>Connect your wallet</strong> — visit the Noviq dashboard and connect your MetaMask (or any EVM) wallet. This proves ownership of your wallet address.</li>
-            <li><strong>Generate an API key</strong> — in the wallet panel, click "Generate Key" to create a new API key. The full key (prefixed with <code>nvq_</code>) is shown <em>only once</em> — copy and store it securely.</li>
+            <li><strong>Sign a challenge</strong> — when generating an API key, MetaMask will prompt you to sign a one-time challenge message. This cryptographically proves you own the wallet.</li>
+            <li><strong>Generate an API key</strong> — after signing, a new API key (prefixed with <code>nvq_</code>) is created. The full key is shown <em>only once</em> — copy and store it securely.</li>
             <li><strong>Use the key in requests</strong> — include the key in the <code>Authorization</code> header of every API request:</li>
           </ol>
 
@@ -152,6 +153,19 @@ print(response.json()["result"])</code></pre>
           </div>
 
           <p>Each API key is tied to your wallet address. When you call a service, Noviq automatically looks up the wallet associated with your key and executes the on-chain USDC payment from that wallet.</p>
+
+          <div class="docs-alert docs-alert-info">
+            <div class="docs-alert-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+            </div>
+            <div class="docs-alert-content">
+              <p><strong>Signature Flow:</strong> To generate or revoke API keys, the backend first issues a one-time nonce via <code>GET /auth/nonce/{wallet_address}</code>. The frontend signs this nonce using EIP-191 <code>personal_sign</code>, and submits the signature with the request. This prevents anyone from creating keys for a wallet they don't own.</p>
+            </div>
+          </div>
 
           <div class="docs-alert docs-alert-warning">
             <div class="docs-alert-icon">
@@ -327,10 +341,26 @@ print(response.json()["result"])</code></pre>
           </div>
 
           <h2 id="api-keys-endpoints">API Key Management</h2>
-          <p>These endpoints allow you to create, list, and revoke API keys for your wallet address.</p>
+          <p>These endpoints allow you to create, list, and revoke API keys for your wallet address. Key creation and revocation require proof of wallet ownership.</p>
+
+          <h3>GET /auth/nonce/{wallet_address}</h3>
+          <p>Generate a one-time nonce for wallet signature verification. The returned <code>message</code> should be signed using EIP-191 <code>personal_sign</code>.</p>
+
+          <div class="docs-code-block-wrapper">
+            <div class="docs-code-block-header">
+              <span class="docs-code-lang">json</span>
+              <button class="docs-btn-copy" aria-label="Copy code">Copy</button>
+            </div>
+            <pre class="docs-code-block"><code>// Response
+{
+  "nonce": "a1b2c3d4e5f6...",
+  "message": "Noviq: Verify wallet ownership\nNonce: a1b2c3d4e5f6...",
+  "expires_in": 300
+}</code></pre>
+          </div>
 
           <h3>POST /api-keys</h3>
-          <p>Generate a new API key. The full key is returned <strong>only once</strong> in the response — store it securely.</p>
+          <p>Generate a new API key. Requires a wallet signature (obtain a nonce first via <code>GET /auth/nonce</code>). The full key is returned <strong>only once</strong> in the response — store it securely.</p>
 
           <div class="docs-table-wrapper">
             <table class="docs-table">
@@ -350,7 +380,17 @@ print(response.json()["result"])</code></pre>
                 <tr>
                   <td><code>label</code></td>
                   <td><code>string</code></td>
-                  <td>Optional human-friendly label for this key.</td>
+                  <td>Human-friendly label for this key.</td>
+                </tr>
+                <tr>
+                  <td><code>signature</code></td>
+                  <td><code>string</code></td>
+                  <td>EIP-191 personal_sign signature of the challenge message.</td>
+                </tr>
+                <tr>
+                  <td><code>nonce</code></td>
+                  <td><code>string</code></td>
+                  <td>One-time nonce from <code>GET /auth/nonce</code>.</td>
                 </tr>
               </tbody>
             </table>
@@ -374,7 +414,10 @@ print(response.json()["result"])</code></pre>
           <p>List all API keys (active and revoked) for a given wallet. Never returns the full key.</p>
 
           <h3>DELETE /api-keys/{key_prefix}</h3>
-          <p>Revoke an API key by its prefix. Requires <code>wallet_address</code> and <code>key_prefix</code> in the request body.</p>
+          <p>Revoke an API key by its prefix. Requires <strong>either</strong> a valid API key in the <code>Authorization</code> header (for the same wallet) <strong>or</strong> a wallet signature (<code>signature</code> + <code>nonce</code>) in the request body.</p>
+
+          <h3>GET /wallet/{user_id}</h3>
+          <p>Returns wallet info and USDC balance. Requires a valid API key in the <code>Authorization</code> header. The API key must belong to the same wallet being queried.</p>
 
         </div>
       </article>

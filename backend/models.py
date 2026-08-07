@@ -59,6 +59,8 @@ class HealthResponse(BaseModel):
 class GenerateApiKeyRequest(BaseModel):
     wallet_address: str = Field(..., description="EVM wallet address that owns this key")
     label: str = Field(default="", description="Optional human-friendly label for this key")
+    signature: str = Field(..., description="EIP-191 personal_sign signature proving wallet ownership")
+    nonce: str = Field(..., description="One-time nonce from GET /auth/nonce/{wallet_address}")
 
 
 class ApiKeyResponse(BaseModel):
@@ -81,3 +83,12 @@ class ApiKeyCreatedResponse(BaseModel):
 class RevokeApiKeyRequest(BaseModel):
     wallet_address: str = Field(..., description="EVM wallet address that owns this key")
     key_prefix: str = Field(..., description="Prefix of the key to revoke (e.g. 'nvq_a1b2c3d4')")
+    signature: str | None = Field(default=None, description="EIP-191 signature (required if no API key in Authorization header)")
+    nonce: str | None = Field(default=None, description="One-time nonce (required if using signature auth)")
+
+
+# Auth Nonce
+class NonceResponse(BaseModel):
+    nonce: str = Field(..., description="Single-use nonce for wallet signature")
+    message: str = Field(..., description="Full message to sign with personal_sign")
+    expires_in: int = Field(default=300, description="Nonce validity in seconds")

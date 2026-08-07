@@ -256,6 +256,32 @@ function handleDisconnectWallet() {
 
 // ── API Key Management ──────────────────────────────────────────────
 
+/**
+ * Request a nonce from the backend and prompt MetaMask to sign it.
+ * Returns { signature, nonce } on success, or throws on cancel/error.
+ */
+async function requestWalletSignature(walletAddress) {
+  // 1. Get a one-time nonce from the backend
+  const nonceResp = await fetch(
+    `${API_BASE}/auth/nonce/${encodeURIComponent(walletAddress)}`,
+    { headers: { "Content-Type": "application/json" } }
+  );
+  if (!nonceResp.ok) {
+    const err = await nonceResp.json().catch(() => ({}));
+    throw new Error(err.detail || `Failed to get nonce (HTTP ${nonceResp.status})`);
+  }
+  const { nonce, message } = await nonceResp.json();
+
+  // 2. Prompt the user to sign with MetaMask (EIP-191 personal_sign)
+  const signature = await window.ethereum.request({
+    method: "personal_sign",
+    params: [message, walletAddress],
+  });
+
+  return { signature, nonce };
+}
+
+
 async function handleGenerateApiKey() {
   if (!state.wallet) {
     showToast("Connect your wallet first.", "error");
@@ -277,22 +303,31 @@ async function handleGenerateApiKey() {
 
   if (dom.btnGenerateApiKey) {
     dom.btnGenerateApiKey.disabled = true;
-    dom.btnGenerateApiKey.textContent = "Generating...";
+    dom.btnGenerateApiKey.textContent = "Signing...";
   }
 
   try {
+    // Request wallet signature to prove ownership
+    const { signature, nonce } = await requestWalletSignature(state.userId);
+
+    if (dom.btnGenerateApiKey) {
+      dom.btnGenerateApiKey.textContent = "Generating...";
+    }
+
     const resp = await fetch(`${API_BASE}/api-keys`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         wallet_address: state.userId,
         label: label,
+        signature: signature,
+        nonce: nonce,
       }),
     });
 
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
-      throw new Error(err.detail || `HTTP ${resp.status}`);
+      throw new Error(err.detail || err.error || `HTTP ${resp.status}`);
     }
 
     const data = await resp.json();
@@ -307,7 +342,12 @@ async function handleGenerateApiKey() {
     openApiKeyModal(data.api_key);
   } catch (err) {
     console.error("Generate API key error:", err);
-    showToast(err.message || "Failed to generate API key.", "error");
+    // MetaMask user rejection
+    if (err.code === 4001 || (err.message && err.message.includes("User denied"))) {
+      showToast("Signature request was cancelled.", "warning");
+    } else {
+      showToast(err.message || "Failed to generate API key.", "error");
+    }
   } finally {
     if (dom.btnGenerateApiKey) {
       dom.btnGenerateApiKey.disabled = false;
@@ -437,7 +477,7 @@ function renderApiKeyList() {
           <div class="api-key-item-bottom">
             <span class="api-key-item-meta">Created ${created} · Last used ${lastUsed}</span>
             ${isActive
-          ? `<button class="btn btn-ghost btn-xs api-key-revoke-btn" onclick="handleRevokeApiKey('${escapeJsString(key.key_prefix)}')">Revoke</button>`
+          ? `<button class="btn btn-ghost btn-xs api-key-revoke-btn" onclick="handleRevokeApiKey('${escapeJsString(key.key_prefix)}')"">Revoke</button>`
           : ""
         }
           </div>
@@ -468,15 +508,29 @@ async function handleRevokeApiKey(keyPrefix) {
   if (!state.userId) return;
 
   try {
+    const headers = { "Content-Type": "application/json" };
+    const bodyPayload = { wallet_address: state.userId, key_prefix: keyPrefix };
+
+    // Auth method 1: use stored API key if available
+    if (state.apiKey) {
+      headers["Authorization"] = `Bearer ${state.apiKey}`;
+    } else {
+      // Auth method 2: fall back to wallet signature
+      showToast("Signing to verify wallet ownership...", "info");
+      const { signature, nonce } = await requestWalletSignature(state.userId);
+      bodyPayload.signature = signature;
+      bodyPayload.nonce = nonce;
+    }
+
     const resp = await fetch(`${API_BASE}/api-keys/${encodeURIComponent(keyPrefix)}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ wallet_address: state.userId, key_prefix: keyPrefix }),
+      headers,
+      body: JSON.stringify(bodyPayload),
     });
 
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
-      throw new Error(err.detail || `HTTP ${resp.status}`);
+      throw new Error(err.detail || err.error || `HTTP ${resp.status}`);
     }
 
     if (state.apiKey && state.apiKey.startsWith(keyPrefix)) {
@@ -491,7 +545,11 @@ async function handleRevokeApiKey(keyPrefix) {
     showToast("API key revoked.", "info");
   } catch (err) {
     console.error("Revoke API key error:", err);
-    showToast(err.message || "Failed to revoke API key.", "error");
+    if (err.code === 4001 || (err.message && err.message.includes("User denied"))) {
+      showToast("Signature request was cancelled.", "warning");
+    } else {
+      showToast(err.message || "Failed to revoke API key.", "error");
+    }
   }
 }
 window.handleRevokeApiKey = handleRevokeApiKey;

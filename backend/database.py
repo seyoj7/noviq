@@ -98,6 +98,15 @@ def init_db():
                         is_revoked BOOLEAN NOT NULL DEFAULT FALSE
                     )
                 """)
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS auth_nonces (
+                        id SERIAL PRIMARY KEY,
+                        wallet_address TEXT NOT NULL,
+                        nonce TEXT NOT NULL UNIQUE,
+                        created_at TEXT NOT NULL,
+                        consumed BOOLEAN NOT NULL DEFAULT FALSE
+                    )
+                """)
             conn.commit()
         _db_initialized = True
         logger.info("Database schema initialised.")
@@ -242,3 +251,74 @@ def update_api_key_last_used(key_hash: str):
                 (datetime.now(timezone.utc).isoformat(), key_hash)
             )
         conn.commit()
+
+
+# Auth Nonce Operations
+def save_nonce(wallet_address: str, nonce: str):
+    """Store a fresh nonce for wallet signature verification."""
+    # Lazily clean up expired nonces first
+    cleanup_expired_nonces()
+    with _borrow() as conn:
+        if conn is None:
+            return
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO auth_nonces (wallet_address, nonce, created_at)
+                VALUES (%s, %s, %s)
+            """, (
+                wallet_address,
+                nonce,
+                datetime.now(timezone.utc).isoformat()
+            ))
+        conn.commit()
+
+
+def get_nonce(nonce: str, wallet_address: str) -> dict | None:
+    """Fetch a valid (unconsumed, <5min old) nonce. Returns None if invalid."""
+    with _borrow() as conn:
+        if conn is None:
+            return None
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                "SELECT * FROM auth_nonces "
+                "WHERE nonce = %s AND wallet_address = %s AND consumed = FALSE",
+                (nonce, wallet_address)
+            )
+            row = cur.fetchone()
+            if row is None:
+                return None
+            # Check expiry (5 minutes)
+            created = datetime.fromisoformat(row["created_at"])
+            age = (datetime.now(timezone.utc) - created).total_seconds()
+            if age > 300:
+                return None
+            return dict(row)
+
+
+def consume_nonce(nonce: str):
+    """Mark a nonce as consumed so it cannot be reused."""
+    with _borrow() as conn:
+        if conn is None:
+            return
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE auth_nonces SET consumed = TRUE WHERE nonce = %s",
+                (nonce,)
+            )
+        conn.commit()
+
+
+def cleanup_expired_nonces():
+    """Delete nonces older than 10 minutes (generous buffer beyond the 5-min validity)."""
+    from datetime import timedelta
+    with _borrow() as conn:
+        if conn is None:
+            return
+        cutoff = (datetime.now(timezone.utc) - timedelta(minutes=10)).isoformat()
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM auth_nonces WHERE created_at < %s",
+                (cutoff,)
+            )
+        conn.commit()
+

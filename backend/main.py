@@ -16,7 +16,14 @@ from fastapi.responses import JSONResponse
 from backend import payment, wallet, database
 from backend.wallet import to_checksum_address
 from backend import services as service_module
-from backend.auth import generate_api_key, validate_api_key
+from backend.auth import (
+    generate_api_key,
+    generate_nonce,
+    build_challenge_message,
+    validate_api_key,
+    optional_validate_api_key,
+    verify_wallet_signature,
+)
 from backend.config import (
     CIRCLE_API_KEY,
     CIRCLE_ENTITY_SECRET,
@@ -28,6 +35,7 @@ from backend.models import (
     CreateWalletRequest,
     GenerateApiKeyRequest,
     HealthResponse,
+    NonceResponse,
     RevokeApiKeyRequest,
     RunServiceRequest,
     ServiceInfo,
@@ -52,7 +60,7 @@ app = FastAPI(
         "Pay-per-request AI services powered by Circle Nanopayments on Arc. "
         "No subscriptions. No gas. Just sign and run."
     ),
-    version="0.2.0",
+    version="0.3.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
@@ -105,6 +113,23 @@ async def list_services() -> list[ServiceInfo]:
         )
         for s in service_module.SERVICE_REGISTRY.values()
     ]
+
+
+# ── Auth nonce endpoint ─────────────────────────────────────────────
+
+@app.get("/auth/nonce/{wallet_address}", response_model=NonceResponse, tags=["Auth"])
+async def get_auth_nonce(wallet_address: str) -> NonceResponse:
+    """Generate a single-use nonce for wallet ownership verification.
+
+    The frontend should prompt the user to sign the returned ``message``
+    using ``personal_sign`` (EIP-191), then submit the signature alongside
+    the nonce to secured endpoints.
+    """
+    wallet_addr = to_checksum_address(wallet_address)
+    nonce = generate_nonce()
+    database.save_nonce(wallet_addr, nonce)
+    message = build_challenge_message(nonce)
+    return NonceResponse(nonce=nonce, message=message, expires_in=300)
 
 
 # ── Service execution routes (API key required) ─────────────────────
@@ -216,7 +241,7 @@ async def get_user_transactions(user_id: str):
     return database.get_transactions(to_checksum_address(user_id))
 
 
-# ── Wallet routes (unchanged) ───────────────────────────────────────
+# ── Wallet routes ───────────────────────────────────────────────────
 
 @app.post("/wallet", response_model=WalletInfo, tags=["Wallets"])
 async def create_or_get_wallet(body: CreateWalletRequest) -> WalletInfo:
@@ -228,9 +253,26 @@ async def create_or_get_wallet(body: CreateWalletRequest) -> WalletInfo:
 
 
 @app.get("/wallet/{user_id}", response_model=WalletInfo, tags=["Wallets"])
-async def get_wallet(user_id: str) -> WalletInfo:
+async def get_wallet(
+    user_id: str,
+    api_key_wallet: str = Depends(validate_api_key),
+) -> WalletInfo:
+    """Return wallet info and USDC balance for a user.
+
+    Requires a valid API key in the ``Authorization`` header.
+    The API key must belong to the same wallet being queried.
+    """
+    target = to_checksum_address(user_id)
+    owner = to_checksum_address(api_key_wallet)
+
+    if target != owner:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only view your own wallet.",
+        )
+
     try:
-        return await wallet.get_or_create_wallet(to_checksum_address(user_id))
+        return await wallet.get_or_create_wallet(target)
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=502, detail=f"Circle Wallets API error: {exc.response.status_code}")
 
@@ -241,6 +283,9 @@ async def get_wallet(user_id: str) -> WalletInfo:
 async def create_api_key(body: GenerateApiKeyRequest):
     """Generate a new API key for the given wallet address.
 
+    Requires a valid EIP-191 ``personal_sign`` signature proving ownership
+    of the wallet.  Obtain a nonce first via ``GET /auth/nonce/{wallet_address}``.
+
     The full key is returned **only once** in the response.
     Each wallet may hold at most 2 active (non-revoked) keys.
     """
@@ -248,6 +293,9 @@ async def create_api_key(body: GenerateApiKeyRequest):
 
     if not body.label or not body.label.strip():
         raise HTTPException(status_code=400, detail="A key label is required.")
+
+    # Verify wallet ownership via signature
+    verify_wallet_signature(wallet_addr, body.signature, body.nonce)
 
     # Enforce per-wallet limit of 2 active keys
     existing = database.get_api_keys_for_wallet(wallet_addr)
@@ -287,9 +335,39 @@ async def list_api_keys(wallet_address: str):
 
 
 @app.delete("/api-keys/{key_prefix}", tags=["API Keys"])
-async def revoke_api_key_endpoint(key_prefix: str, body: RevokeApiKeyRequest):
-    """Revoke an API key by its prefix."""
+async def revoke_api_key_endpoint(
+    key_prefix: str,
+    body: RevokeApiKeyRequest,
+    api_key_wallet: str | None = Depends(optional_validate_api_key),
+):
+    """Revoke an API key by its prefix.
+
+    Accepts **either** of two authentication methods:
+
+    1. **API key** — include a valid ``Authorization: Bearer nvq_...`` header
+       for a key belonging to the same wallet.
+    2. **Wallet signature** — include ``signature`` and ``nonce`` fields in the
+       request body (obtain a nonce via ``GET /auth/nonce/{wallet_address}``).
+    """
     wallet_addr = to_checksum_address(body.wallet_address)
+
+    # Auth method 1: valid API key for the same wallet
+    if api_key_wallet is not None:
+        if to_checksum_address(api_key_wallet) != wallet_addr:
+            raise HTTPException(
+                status_code=403,
+                detail="API key does not belong to the wallet that owns this key.",
+            )
+    # Auth method 2: wallet signature
+    elif body.signature and body.nonce:
+        verify_wallet_signature(wallet_addr, body.signature, body.nonce)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required. Provide either an API key in the Authorization header "
+                   "or a wallet signature (signature + nonce) in the request body.",
+        )
+
     revoked = database.revoke_api_key(key_prefix, wallet_addr)
     if not revoked:
         raise HTTPException(status_code=404, detail="API key not found or already revoked.")
