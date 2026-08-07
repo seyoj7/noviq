@@ -513,7 +513,7 @@ async function handleRevokeApiKey(keyPrefix) {
 
     // Auth method 1: use stored API key if available
     if (state.apiKey) {
-      headers["Authorization"] = `Bearer ${state.apiKey}`;
+      headers["Authorization"] = state.apiKey;
     } else {
       // Auth method 2: fall back to wallet signature
       showToast("Signing to verify wallet ownership...", "info");

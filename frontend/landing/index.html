@@ -323,7 +323,7 @@
           </div>
           <h3 class="wf-title">Call <code class="wf-inline-code">/run</code></h3>
         </div>
-        <p class="wf-desc">POST to <code>/run</code> using an <code>Authorization: Bearer nvq_…</code> header. Provide a
+        <p class="wf-desc">POST to <code>/run</code> using an <code>Authorization: nvq_…</code> header. Provide a
           <code>service_id</code> and your <code>input_data</code>. The backend authenticates your key.
         </p>
 
@@ -393,7 +393,7 @@
         <pre id="snippet-python"><code><span class="syntax-keyword">import </span><span class="syntax-module">requests</span>
 
 <span class="syntax-variable">response</span> = <span class="syntax-module">requests</span>.post(<span class="syntax-string">"https://YOUR_DOMAIN/run"</span>,
-    headers={<span class="syntax-string">"Authorization"</span>: <span class="syntax-string">"Bearer nvq_YOUR_API_KEY"</span>},
+    headers={<span class="syntax-string">"Authorization"</span>: <span class="syntax-string">"nvq_YOUR_API_KEY"</span>},
     json={
         <span class="syntax-string">"service_id"</span>: <span class="syntax-string" id="snippet-service-id">"token_price"</span>,
         <span class="syntax-string">"input_data"</span>: <span class="syntax-string" id="snippet-input-data">"bitcoin"</span>
@@ -404,7 +404,7 @@
     method: <span class="syntax-string">"POST"</span>,
     headers: {
         <span class="syntax-string">"Content-Type"</span>: <span class="syntax-string">"application/json"</span>,
-        <span class="syntax-string">"Authorization"</span>: <span class="syntax-string">"Bearer nvq_YOUR_API_KEY"</span>
+        <span class="syntax-string">"Authorization"</span>: <span class="syntax-string">"nvq_YOUR_API_KEY"</span>
     },
     body: <span class="syntax-builtin">JSON</span>.stringify({
         <span class="syntax-string">"service_id"</span>: <span class="syntax-string" id="snippet-service-id-node">"token_price"</span>,

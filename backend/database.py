@@ -165,11 +165,10 @@ def get_transactions(user_id: str) -> list[dict]:
             cur.execute("SELECT * FROM transactions WHERE user_id = %s ORDER BY id DESC", (user_id,))
             rows = cur.fetchall()
 
-            # Format response keys to match what frontend app.js expects
+            # Format response keys
             return [
                 {
-                    "agent": row["service_name"],
-                    "agentId": row["service_id"],
+                    "service_id": row["service_id"],
                     "cost": row["cost"],
                     "status": row["status"],
                     "txHash": row["tx_hash"],

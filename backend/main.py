@@ -237,8 +237,24 @@ async def run_simple(
 
 
 @app.get("/transactions/{user_id}", tags=["Services"])
-async def get_user_transactions(user_id: str):
-    return database.get_transactions(to_checksum_address(user_id))
+async def get_user_transactions(
+    user_id: str,
+    api_key_wallet: str = Depends(validate_api_key),
+):
+    """Returns the full transaction history for a wallet address.
+    
+    Requires a valid API key in the ``Authorization`` header.
+    The API key must belong to the same wallet being queried.
+    """
+    target = to_checksum_address(user_id)
+    owner = to_checksum_address(api_key_wallet)
+
+    if target != owner:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only view your own transactions.",
+        )
+    return database.get_transactions(target)
 
 
 # ── Wallet routes ───────────────────────────────────────────────────
@@ -344,7 +360,7 @@ async def revoke_api_key_endpoint(
 
     Accepts **either** of two authentication methods:
 
-    1. **API key** — include a valid ``Authorization: Bearer nvq_...`` header
+    1. **API key** — include a valid ``Authorization: nvq_...`` header
        for a key belonging to the same wallet.
     2. **Wallet signature** — include ``signature`` and ``nonce`` fields in the
        request body (obtain a nonce via ``GET /auth/nonce/{wallet_address}``).

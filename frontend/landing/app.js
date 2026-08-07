@@ -70,7 +70,7 @@ function initThemeToggle() {
   const toggleBtn = document.getElementById('theme-toggle');
   const moonIcon = document.getElementById('theme-icon-moon');
   const sunIcon = document.getElementById('theme-icon-sun');
-  
+
   if (!toggleBtn) return;
 
   function updateIcon(theme) {
@@ -88,7 +88,7 @@ function initThemeToggle() {
   toggleBtn.addEventListener('click', () => {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    
+
     if (newTheme === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark');
       localStorage.setItem('noviq_theme', 'dark');
@@ -191,7 +191,7 @@ function initScrollEffects() {
 function initRevealAnimations() {
   const revealElements = document.querySelectorAll('.reveal-on-scroll');
   if (!revealElements.length) return;
-  
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -204,7 +204,7 @@ function initRevealAnimations() {
     rootMargin: '0px',
     threshold: 0.15
   });
-  
+
   revealElements.forEach(el => observer.observe(el));
 }
 
@@ -239,8 +239,8 @@ function handleCopySnippet() {
 
   const textToCopy =
     activeTab === "python"
-      ? `import requests\n\nresponse = requests.post("${window.location.origin}/run",\n    headers={"Authorization": "Bearer ${apiKeyPlaceholder}"},\n    json={\n        "service_id": ${serviceId},\n        "input_data": ${inputData}\n})\nprint(response.json()["result"])`
-      : `const response = await fetch("${window.location.origin}/run", {\n    method: "POST",\n    headers: {\n        "Content-Type": "application/json",\n        "Authorization": "Bearer ${apiKeyPlaceholder}"\n    },\n    body: JSON.stringify({\n        "service_id": ${serviceId},\n        "input_data": ${inputData}\n    })\n});\nconst data = await response.json();\nconsole.log(data.result);`;
+      ? `import requests\n\nresponse = requests.post("${window.location.origin}/run",\n    headers={"Authorization": "${apiKeyPlaceholder}"},\n    json={\n        "service_id": ${serviceId},\n        "input_data": ${inputData}\n})\nprint(response.json()["result"])`
+      : `const response = await fetch("${window.location.origin}/run", {\n    method: "POST",\n    headers: {\n        "Content-Type": "application/json",\n        "Authorization": "${apiKeyPlaceholder}"\n    },\n    body: JSON.stringify({\n        "service_id": ${serviceId},\n        "input_data": ${inputData}\n    })\n});\nconst data = await response.json();\nconsole.log(data.result);`;
 
   navigator.clipboard.writeText(textToCopy);
   showToast(
@@ -255,7 +255,7 @@ async function apiFetch(path, options = {}) {
 
   // Auto-attach API key if one is stored
   if (state.apiKey && !mergedHeaders["Authorization"]) {
-    mergedHeaders["Authorization"] = `Bearer ${state.apiKey}`;
+    mergedHeaders["Authorization"] = state.apiKey;
   }
 
   return fetch(`${API_BASE}${path}`, {
@@ -447,8 +447,7 @@ function handleServiceResult(result) {
   showToast("Service completed — payment authorized!", "success");
 
   addHistoryEntry({
-    agent: state.selectedService.name,
-    agentId: state.selectedService.id,
+    service_id: state.selectedService.id,
     cost: state.selectedService.price_usdc,
     status: "verified",
     txHash: result.payment_ref || "—",
@@ -645,7 +644,7 @@ function renderHistory() {
       return `
         <tr>
           <td class="history-cell-time">${time}</td>
-          <td>${escapeHtml(entry.agent)}</td>
+          <td>${escapeHtml(entry.service_id || "Unknown")}</td>
           <td class="history-cell-cost">$${costFormatted}</td>
           <td><span class="status-badge ${statusClass}">${statusIcon} ${statusLabel}</span></td>
           <td>

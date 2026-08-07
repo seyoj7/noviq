@@ -60,17 +60,14 @@ async def validate_api_key(
     if not authorization:
         raise HTTPException(
             status_code=401,
-            detail="Missing Authorization header. Provide 'Authorization: Bearer nvq_...'",
+            detail="Missing Authorization header. Provide your API key.",
         )
 
-    parts = authorization.split()
-    if len(parts) != 2 or parts[0].lower() != "bearer":
-        raise HTTPException(
-            status_code=401,
-            detail="Authorization header must use 'Bearer <api_key>' format.",
-        )
-
-    raw_key = parts[1]
+    # Allow both 'Bearer nvq_...' and just 'nvq_...'
+    if authorization.lower().startswith("bearer "):
+        raw_key = authorization.split(" ", 1)[1]
+    else:
+        raw_key = authorization.strip()
     if not raw_key.startswith("nvq_"):
         raise HTTPException(
             status_code=401,
