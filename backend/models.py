@@ -64,7 +64,6 @@ class GenerateApiKeyRequest(BaseModel):
 
 
 class ApiKeyResponse(BaseModel):
-    """Returned when listing keys — never exposes the full key."""
     key_prefix: str
     label: str
     created_at: str
@@ -73,7 +72,6 @@ class ApiKeyResponse(BaseModel):
 
 
 class ApiKeyCreatedResponse(BaseModel):
-    """Returned exactly once at creation time with the full raw key."""
     api_key: str = Field(..., description="Full API key — store securely, it will NOT be shown again")
     key_prefix: str
     label: str

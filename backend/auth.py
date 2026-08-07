@@ -1,11 +1,3 @@
-"""
-API Key authentication utilities for Noviq.
-
-Keys are formatted as ``nvq_<48 hex chars>`` (24 random bytes).
-Only a SHA-256 hash of each key is persisted; the raw key is shown
-to the user exactly once at creation time.
-"""
-
 from __future__ import annotations
 
 import hashlib
@@ -25,7 +17,6 @@ CHALLENGE_PREFIX = "Noviq: Verify wallet ownership\nNonce: "
 # ── Key helpers ──────────────────────────────────────────────────────
 
 def generate_api_key() -> tuple[str, str, str]:
-    """Return ``(raw_key, key_hash, key_prefix)``."""
     raw = "nvq_" + secrets.token_hex(24)          # 48 hex chars
     key_hash = hash_api_key(raw)
     key_prefix = raw[:12]                          # "nvq_" + 8 hex
@@ -33,17 +24,14 @@ def generate_api_key() -> tuple[str, str, str]:
 
 
 def hash_api_key(raw_key: str) -> str:
-    """Deterministic SHA-256 hex digest of *raw_key*."""
     return hashlib.sha256(raw_key.encode()).hexdigest()
 
 
 def generate_nonce() -> str:
-    """Return a random 32-char hex string for use as a one-time nonce."""
     return secrets.token_hex(16)
 
 
 def build_challenge_message(nonce: str) -> str:
-    """Build the human-readable message the wallet must sign."""
     return f"{CHALLENGE_PREFIX}{nonce}"
 
 
@@ -52,11 +40,6 @@ def build_challenge_message(nonce: str) -> str:
 async def validate_api_key(
     authorization: str | None = Header(default=None),
 ) -> str:
-    """Extract and validate the API key from the ``Authorization`` header.
-
-    Returns the wallet address associated with the key.
-    Raises **401** if the key is missing, malformed, revoked, or unknown.
-    """
     if not authorization:
         raise HTTPException(
             status_code=401,
@@ -80,6 +63,10 @@ async def validate_api_key(
     if key_record is None:
         raise HTTPException(status_code=401, detail="Invalid or revoked API key.")
 
+    # Enforce Rate Limiting (60 requests per minute)
+    if not database.check_rate_limit(key_hash, limit=60, window_seconds=60):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded. Maximum 60 requests per minute allowed.")
+
     # Update last-used timestamp (fire-and-forget; failure is non-critical)
     try:
         database.update_api_key_last_used(key_hash)
@@ -92,10 +79,6 @@ async def validate_api_key(
 async def optional_validate_api_key(
     authorization: str | None = Header(default=None),
 ) -> str | None:
-    """Like ``validate_api_key`` but returns ``None`` instead of raising
-    when no Authorization header is present.  Used for endpoints that
-    accept *either* API key auth or signature auth.
-    """
     if not authorization:
         return None
     try:
@@ -111,17 +94,6 @@ def verify_wallet_signature(
     signature: str,
     nonce: str,
 ) -> bool:
-    """Verify an EIP-191 ``personal_sign`` signature proves ownership of
-    *wallet_address*.
-
-    1. Look up the nonce in the database (must be unconsumed, <5 min old).
-    2. Reconstruct the challenge message.
-    3. Recover the signer using ``eth_account``.
-    4. Compare to the claimed address (checksummed).
-    5. Consume the nonce on success.
-
-    Raises ``HTTPException(401)`` on any failure.
-    """
     from eth_account.messages import encode_defunct
     from eth_account import Account
 

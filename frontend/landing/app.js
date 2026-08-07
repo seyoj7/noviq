@@ -272,6 +272,9 @@ async function fetchServices() {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     state.services = await resp.json();
     renderServiceCards();
+    if (state.history.length > 0) {
+      renderHistory();
+    }
   } catch (err) {
     console.error("Failed to fetch services:", err);
     dom.servicesGrid.innerHTML = `
@@ -641,10 +644,13 @@ function renderHistory() {
           ? entry.cost.toFixed(3)
           : entry.cost.toFixed(2);
 
+      const matchedService = state.services.find(s => s.id === entry.service_id);
+      const displayService = matchedService ? matchedService.name : (entry.service_id || "Unknown");
+
       return `
         <tr>
           <td class="history-cell-time">${time}</td>
-          <td>${escapeHtml(entry.service_id || "Unknown")}</td>
+          <td>${escapeHtml(displayService)}</td>
           <td class="history-cell-cost">$${costFormatted}</td>
           <td><span class="status-badge ${statusClass}">${statusIcon} ${statusLabel}</span></td>
           <td>

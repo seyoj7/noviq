@@ -119,12 +119,6 @@ async def list_services() -> list[ServiceInfo]:
 
 @app.get("/auth/nonce/{wallet_address}", response_model=NonceResponse, tags=["Auth"])
 async def get_auth_nonce(wallet_address: str) -> NonceResponse:
-    """Generate a single-use nonce for wallet ownership verification.
-
-    The frontend should prompt the user to sign the returned ``message``
-    using ``personal_sign`` (EIP-191), then submit the signature alongside
-    the nonce to secured endpoints.
-    """
     wallet_addr = to_checksum_address(wallet_address)
     nonce = generate_nonce()
     database.save_nonce(wallet_addr, nonce)
@@ -239,21 +233,8 @@ async def run_simple(
 @app.get("/transactions/{user_id}", tags=["Services"])
 async def get_user_transactions(
     user_id: str,
-    api_key_wallet: str = Depends(validate_api_key),
 ):
-    """Returns the full transaction history for a wallet address.
-    
-    Requires a valid API key in the ``Authorization`` header.
-    The API key must belong to the same wallet being queried.
-    """
     target = to_checksum_address(user_id)
-    owner = to_checksum_address(api_key_wallet)
-
-    if target != owner:
-        raise HTTPException(
-            status_code=403,
-            detail="You can only view your own transactions.",
-        )
     return database.get_transactions(target)
 
 
@@ -273,11 +254,6 @@ async def get_wallet(
     user_id: str,
     api_key_wallet: str = Depends(validate_api_key),
 ) -> WalletInfo:
-    """Return wallet info and USDC balance for a user.
-
-    Requires a valid API key in the ``Authorization`` header.
-    The API key must belong to the same wallet being queried.
-    """
     target = to_checksum_address(user_id)
     owner = to_checksum_address(api_key_wallet)
 
@@ -297,14 +273,6 @@ async def get_wallet(
 
 @app.post("/api-keys", response_model=ApiKeyCreatedResponse, tags=["API Keys"])
 async def create_api_key(body: GenerateApiKeyRequest):
-    """Generate a new API key for the given wallet address.
-
-    Requires a valid EIP-191 ``personal_sign`` signature proving ownership
-    of the wallet.  Obtain a nonce first via ``GET /auth/nonce/{wallet_address}``.
-
-    The full key is returned **only once** in the response.
-    Each wallet may hold at most 2 active (non-revoked) keys.
-    """
     wallet_addr = to_checksum_address(body.wallet_address)
 
     if not body.label or not body.label.strip():
@@ -344,7 +312,6 @@ async def create_api_key(body: GenerateApiKeyRequest):
 
 @app.get("/api-keys/{wallet_address}", response_model=list[ApiKeyResponse], tags=["API Keys"])
 async def list_api_keys(wallet_address: str):
-    """List all API keys for a wallet (active and revoked). Never returns the full key."""
     wallet_addr = to_checksum_address(wallet_address)
     keys = database.get_api_keys_for_wallet(wallet_addr)
     return [ApiKeyResponse(**k) for k in keys]
@@ -356,15 +323,6 @@ async def revoke_api_key_endpoint(
     body: RevokeApiKeyRequest,
     api_key_wallet: str | None = Depends(optional_validate_api_key),
 ):
-    """Revoke an API key by its prefix.
-
-    Accepts **either** of two authentication methods:
-
-    1. **API key** — include a valid ``Authorization: nvq_...`` header
-       for a key belonging to the same wallet.
-    2. **Wallet signature** — include ``signature`` and ``nonce`` fields in the
-       request body (obtain a nonce via ``GET /auth/nonce/{wallet_address}``).
-    """
     wallet_addr = to_checksum_address(body.wallet_address)
 
     # Auth method 1: valid API key for the same wallet

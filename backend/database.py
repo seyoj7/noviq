@@ -18,7 +18,6 @@ _pool: psycopg2.pool.SimpleConnectionPool | None = None
 
 
 def _get_pool() -> psycopg2.pool.SimpleConnectionPool | None:
-    """Return the shared connection pool, creating it on first call."""
     global _pool
     if not POSTGRES_URL:
         return None
@@ -38,7 +37,6 @@ def _get_pool() -> psycopg2.pool.SimpleConnectionPool | None:
 
 @contextmanager
 def _borrow():
-    """Context manager: borrows a connection from the pool and returns it."""
     pool = _get_pool()
     if pool is None:
         yield None
@@ -96,6 +94,14 @@ def init_db():
                         created_at TEXT NOT NULL,
                         last_used_at TEXT,
                         is_revoked BOOLEAN NOT NULL DEFAULT FALSE
+                    )
+                """)
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS api_rate_limits (
+                        key_hash TEXT NOT NULL,
+                        window_start TIMESTAMP NOT NULL,
+                        request_count INTEGER NOT NULL,
+                        PRIMARY KEY (key_hash, window_start)
                     )
                 """)
                 cur.execute("""
@@ -178,6 +184,36 @@ def get_transactions(user_id: str) -> list[dict]:
             ]
 
 
+# ── API Rate Limiting ───────────────────────────────────────────────
+
+def check_rate_limit(key_hash: str, limit: int = 60, window_seconds: int = 60) -> bool:
+    with _borrow() as conn:
+        if conn is None:
+            return True # Fail open if DB is down
+        with conn.cursor() as cur:
+            # Delete windows older than 1 hour (lightweight cleanup)
+            cur.execute(
+                "DELETE FROM api_rate_limits WHERE window_start < now() - interval '1 hour'"
+            )
+            
+            # Increment request count for the current window
+            # We truncate current time to the window size (e.g., current minute)
+            cur.execute(
+                f"""
+                INSERT INTO api_rate_limits (key_hash, window_start, request_count)
+                VALUES (%s, date_trunc('minute', now()), 1)
+                ON CONFLICT (key_hash, window_start) 
+                DO UPDATE SET request_count = api_rate_limits.request_count + 1
+                RETURNING request_count
+                """,
+                (key_hash,)
+            )
+            count = cur.fetchone()[0]
+            conn.commit()
+            
+            return count <= limit
+
+
 # API Key Operations
 def save_api_key(key_hash: str, key_prefix: str, wallet_address: str, label: str = ""):
     with _borrow() as conn:
@@ -198,7 +234,6 @@ def save_api_key(key_hash: str, key_prefix: str, wallet_address: str, label: str
 
 
 def get_api_key(key_hash: str) -> dict | None:
-    """Look up an API key by its hash. Returns None if not found or revoked."""
     with _borrow() as conn:
         if conn is None:
             return None
@@ -212,7 +247,6 @@ def get_api_key(key_hash: str) -> dict | None:
 
 
 def get_api_keys_for_wallet(wallet_address: str) -> list[dict]:
-    """Return all API keys (active and revoked) for a given wallet address."""
     with _borrow() as conn:
         if conn is None:
             return []
@@ -226,7 +260,6 @@ def get_api_keys_for_wallet(wallet_address: str) -> list[dict]:
 
 
 def revoke_api_key(key_prefix: str, wallet_address: str) -> bool:
-    """Revoke a key by prefix+wallet. Returns True if a key was actually revoked."""
     with _borrow() as conn:
         if conn is None:
             return False
@@ -254,7 +287,6 @@ def update_api_key_last_used(key_hash: str):
 
 # Auth Nonce Operations
 def save_nonce(wallet_address: str, nonce: str):
-    """Store a fresh nonce for wallet signature verification."""
     # Lazily clean up expired nonces first
     cleanup_expired_nonces()
     with _borrow() as conn:
@@ -273,7 +305,6 @@ def save_nonce(wallet_address: str, nonce: str):
 
 
 def get_nonce(nonce: str, wallet_address: str) -> dict | None:
-    """Fetch a valid (unconsumed, <5min old) nonce. Returns None if invalid."""
     with _borrow() as conn:
         if conn is None:
             return None
@@ -295,7 +326,6 @@ def get_nonce(nonce: str, wallet_address: str) -> dict | None:
 
 
 def consume_nonce(nonce: str):
-    """Mark a nonce as consumed so it cannot be reused."""
     with _borrow() as conn:
         if conn is None:
             return
@@ -308,7 +338,6 @@ def consume_nonce(nonce: str):
 
 
 def cleanup_expired_nonces():
-    """Delete nonces older than 10 minutes (generous buffer beyond the 5-min validity)."""
     from datetime import timedelta
     with _borrow() as conn:
         if conn is None:
