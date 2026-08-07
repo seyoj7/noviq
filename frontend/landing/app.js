@@ -63,6 +63,7 @@ function init() {
 
   initThemeToggle();
   initScrollEffects();
+  initRevealAnimations();
 }
 
 function initThemeToggle() {
@@ -185,6 +186,26 @@ function initScrollEffects() {
     },
     { passive: true }
   );
+}
+
+function initRevealAnimations() {
+  const revealElements = document.querySelectorAll('.reveal-on-scroll');
+  if (!revealElements.length) return;
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-revealed');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.15
+  });
+  
+  revealElements.forEach(el => observer.observe(el));
 }
 
 function handleSnippetTabClick(e) {
