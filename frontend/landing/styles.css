@@ -515,6 +515,23 @@ h4 {
   letter-spacing: -0.05em;
 }
 
+.beta-badge {
+  font-size: 0.65rem;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
+  padding: 3px 6px 2px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+  margin-left: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
 .navbar-links {
   display: flex;
   gap: var(--space-xl);
@@ -2044,7 +2061,18 @@ h4 {
   transform: translateY(0);
 }
 
-.delay-100 { transition-delay: 100ms; }
-.delay-200 { transition-delay: 200ms; }
-.delay-300 { transition-delay: 300ms; }
-.delay-400 { transition-delay: 400ms; }
+.delay-100 {
+  transition-delay: 100ms;
+}
+
+.delay-200 {
+  transition-delay: 200ms;
+}
+
+.delay-300 {
+  transition-delay: 300ms;
+}
+
+.delay-400 {
+  transition-delay: 400ms;
+}
