@@ -8,17 +8,36 @@ document.addEventListener("DOMContentLoaded", () => {
 function initMobileMenu() {
   const btn = document.getElementById("docs-mobile-menu-btn");
   const sidebar = document.getElementById("docs-sidebar");
+  const backdrop = document.getElementById("docs-sidebar-backdrop");
 
   if (!btn || !sidebar) return;
 
-  btn.addEventListener("click", () => {
-    sidebar.classList.toggle("open");
+  function toggleSidebar(open) {
+    const shouldOpen = open !== undefined ? open : !sidebar.classList.contains("open");
+    sidebar.classList.toggle("open", shouldOpen);
+    if (backdrop) backdrop.classList.toggle("open", shouldOpen);
+    document.body.style.overflow = shouldOpen ? "hidden" : "";
+  }
+
+  btn.addEventListener("click", () => toggleSidebar());
+
+  if (backdrop) {
+    backdrop.addEventListener("click", () => toggleSidebar(false));
+  }
+
+  // Close sidebar when clicking any nav link on mobile
+  sidebar.querySelectorAll(".docs-nav-link").forEach((link) => {
+    link.addEventListener("click", () => {
+      if (window.innerWidth <= 768) {
+        toggleSidebar(false);
+      }
+    });
   });
 
-  // Close sidebar when clicking outside on mobile
-  document.addEventListener("click", (e) => {
-    if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !btn.contains(e.target)) {
-      sidebar.classList.remove("open");
+  // Close sidebar on Escape
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && sidebar.classList.contains("open")) {
+      toggleSidebar(false);
     }
   });
 }

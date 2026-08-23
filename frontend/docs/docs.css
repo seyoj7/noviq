@@ -359,31 +359,96 @@
   margin: 0;
 }
 
-/* Responsive Docs */
+/* ── Mobile Sidebar Backdrop ───────────────────────────────────────── */
+.docs-sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 19, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 45;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
 
+.docs-sidebar-backdrop.open {
+  display: block;
+  opacity: 1;
+}
 
+/* ── Responsive Docs ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .docs-mobile-menu-btn {
     display: block;
   }
+
   .docs-layout {
     grid-template-columns: 1fr;
   }
+
   .docs-sidebar {
     position: fixed;
-    top: 68px;
+    top: 60px;
     left: -100%;
     width: 280px;
-    height: calc(100vh - 68px);
+    height: calc(100vh - 60px);
     z-index: 50;
     transition: left var(--transition-base);
     background: var(--bg-primary);
-    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
   }
+
   .docs-sidebar.open {
     left: 0;
   }
+
   .docs-main {
     padding: var(--space-xl) var(--space-md);
+  }
+
+  .docs-title {
+    font-size: 2.15rem;
+  }
+
+  .docs-description {
+    font-size: 1.05rem;
+  }
+
+  .docs-content h2 {
+    font-size: 1.55rem;
+    margin-top: var(--space-xl);
+  }
+
+  .docs-content h3 {
+    font-size: 1.25rem;
+  }
+
+  .docs-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .docs-table {
+    min-width: 500px;
+  }
+
+  .docs-code-block {
+    padding: 14px 16px;
+    font-size: 0.82rem;
+  }
+
+  .docs-btn-copy {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .docs-title {
+    font-size: 1.85rem;
+  }
+
+  .docs-content ul, .docs-content ol {
+    padding-left: 1.25rem;
   }
 }

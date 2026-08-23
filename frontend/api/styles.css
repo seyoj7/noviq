@@ -144,19 +144,50 @@
   margin-left: auto;
 }
 
+.api-keys-main-section {
+  padding-top: var(--space-3xl);
+  min-height: 80vh;
+}
+
 /* ── Responsive tweaks ────────────────────────────────────────────── */
 @media (max-width: 600px) {
+  .api-keys-main-section {
+    padding-top: 1.5rem !important;
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+  }
+
   .api-key-generate {
     flex-direction: column;
+    gap: var(--space-sm);
   }
 
   .api-key-generate .btn {
     width: 100%;
+    padding: 10px 16px;
+  }
+
+  .api-keys-section {
+    padding: 1.25rem 1rem !important;
   }
 
   .api-keys-disconnected {
     padding: var(--space-xl) var(--space-md);
     min-height: 220px;
+  }
+
+  .api-key-item {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .api-key-item-top {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .api-key-item-bottom {
+    flex-wrap: wrap;
+    gap: 6px;
   }
 }
 
@@ -197,6 +228,7 @@ main.section::after {
   z-index: 1000;
   align-items: center;
   justify-content: center;
+  padding: var(--space-md);
 }
 
 .api-key-modal.open {
@@ -206,8 +238,9 @@ main.section::after {
 .api-key-modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(20, 20, 19, 0.4);
-  backdrop-filter: blur(4px);
+  background: rgba(20, 20, 19, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .api-key-modal-box {
@@ -218,8 +251,10 @@ main.section::after {
   border-radius: var(--radius-md);
   padding: var(--space-xl);
   width: min(580px, calc(100vw - 2rem));
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  max-width: 100%;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
   animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
 }
 
 @keyframes modalIn {
@@ -253,7 +288,7 @@ main.section::after {
   border: none;
   cursor: pointer;
   color: var(--text-secondary);
-  padding: 2px;
+  padding: 4px;
   display: flex;
   align-items: center;
   transition: color var(--transition-fast);
@@ -265,12 +300,9 @@ main.section::after {
 
 .api-key-modal-message {
   font-size: 0.85rem;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--text-secondary);
   margin-bottom: var(--space-lg);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .api-key-modal-message strong {
@@ -294,11 +326,10 @@ main.section::after {
   font-family: var(--font-mono);
   font-size: 0.82rem;
   color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-all;
   user-select: all;
   min-width: 0;
+  line-height: 1.4;
 }
 
 .api-key-modal-copy {
@@ -312,4 +343,27 @@ main.section::after {
 .api-key-modal-footer {
   display: flex;
   justify-content: flex-end;
+}
+
+@media (max-width: 600px) {
+  .api-key-modal-box {
+    padding: 1.25rem 1rem;
+    width: 100%;
+  }
+
+  .api-key-modal-field {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .api-key-modal-copy {
+    width: 100%;
+    justify-content: center;
+    padding: 8px 14px !important;
+  }
+
+  .api-key-modal-footer .btn {
+    width: 100%;
+  }
 }

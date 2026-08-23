@@ -37,6 +37,11 @@ const dom = {
   toastContainer: $("#toast-container"),
   btnCopySnippet: $("#btn-copy-snippet"),
 
+  mobileMenu: $("#mobile-menu"),
+  mobileMenuBackdrop: $("#mobile-menu-backdrop"),
+  btnMobileMenu: $("#btn-mobile-menu"),
+  btnCloseMobileMenu: $("#btn-close-mobile-menu"),
+
   snippetPython: $("#snippet-python"),
   snippetNode: $("#snippet-node"),
   snippetServiceId: $("#snippet-service-id"),
@@ -51,6 +56,7 @@ const dom = {
 document.addEventListener("DOMContentLoaded", init);
 
 function init() {
+  initMobileMenu();
   initSnippetPanel();
   updateSnippetDomain();
   restoreWalletSession();
@@ -64,6 +70,38 @@ function init() {
   initThemeToggle();
   initScrollEffects();
   initRevealAnimations();
+}
+
+function initMobileMenu() {
+  if (!dom.mobileMenu || !dom.btnMobileMenu) return;
+
+  function openMobileMenu() {
+    dom.mobileMenu.classList.add("open");
+    dom.mobileMenu.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeMobileMenu() {
+    dom.mobileMenu.classList.remove("open");
+    dom.mobileMenu.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  dom.btnMobileMenu.addEventListener("click", openMobileMenu);
+  if (dom.btnCloseMobileMenu) dom.btnCloseMobileMenu.addEventListener("click", closeMobileMenu);
+  if (dom.mobileMenuBackdrop) dom.mobileMenuBackdrop.addEventListener("click", closeMobileMenu);
+
+  // Close when clicking any link inside the mobile drawer
+  dom.mobileMenu.querySelectorAll(".mobile-menu-link, .mobile-menu-btn, .mobile-menu-ext-link").forEach((link) => {
+    link.addEventListener("click", closeMobileMenu);
+  });
+
+  // Close on Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && dom.mobileMenu.classList.contains("open")) {
+      closeMobileMenu();
+    }
+  });
 }
 
 function initThemeToggle() {
@@ -627,33 +665,37 @@ function renderHistory() {
     .map((entry) => {
       const isFailed = entry.status === "failed";
       const statusLabel = isFailed ? "Failed" : "Done";
-      const statusClass = isFailed ? "failed" : "done";
+      const statusClass = isFailed ? "status-failed" : "status-done";
       const statusIcon = isFailed ? "❌" : "✅";
-      const txRef = entry.txHash || entry.paymentRef;
+      const txRef = entry.txHash || entry.paymentRef || "";
 
-      const time = new Date(entry.time).toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-        timeZone: "Asia/Kolkata",
-      });
+      let time = "";
+      try {
+        time = new Date(entry.time).toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true,
+        });
+      } catch (e) {
+        time = String(entry.time || "");
+      }
 
       const costFormatted =
         entry.cost > 0 && entry.cost < 0.01
           ? entry.cost.toFixed(3)
-          : entry.cost.toFixed(2);
+          : Number(entry.cost || 0).toFixed(2);
 
       const matchedService = state.services.find(s => s.id === entry.service_id);
       const displayService = matchedService ? matchedService.name : (entry.service_id || "Unknown");
 
       return `
         <tr>
-          <td class="history-cell-time">${time}</td>
-          <td>${escapeHtml(displayService)}</td>
+          <td class="history-cell-time">${escapeHtml(time)}</td>
+          <td class="history-cell-service">${escapeHtml(displayService)}</td>
           <td class="history-cell-cost">$${costFormatted}</td>
-          <td><span class="status-badge ${statusClass}">${statusIcon} ${statusLabel}</span></td>
-          <td>
+          <td class="history-cell-status">${statusIcon} ${statusLabel}</td>
+          <td class="history-cell-tx">
             <div class="history-tx-wrapper">
               <a href="https://testnet.arcscan.app/tx/${txRef}" target="_blank" rel="noopener noreferrer" class="ref-mono history-tx-link">
                 ${truncateRef(txRef)}
@@ -718,7 +760,10 @@ function escapeJsString(str) {
 }
 
 function truncateAddress(addr) {
-  if (!addr || addr.length < 12) return addr;
+  if (!addr || addr.length < 10) return addr;
+  if (window.innerWidth <= 480) {
+    return addr.slice(0, 4) + "···" + addr.slice(-3);
+  }
   return addr.slice(0, 6) + "···" + addr.slice(-4);
 }
 
