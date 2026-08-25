@@ -1589,27 +1589,34 @@ h4 {
   margin: 0 auto;
   border-radius: var(--radius-sm);
   overflow-x: auto;
-  overflow-y: auto;
-  max-height: 440px;
+  overflow-y: hidden;
   border: 1px solid var(--border-light);
   background: var(--bg-secondary);
   -webkit-overflow-scrolling: touch;
 }
 
-.history-table {
-  width: 100%;
+.history-table-inner {
   min-width: 580px;
-  border-collapse: separate;
-  border-spacing: 0;
-  font-size: 0.85rem;
-  table-layout: auto;
+  width: 100%;
 }
 
-.history-table thead {
-  position: sticky;
-  top: 0;
-  z-index: 5;
+.history-table-header-box {
   background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.history-table-body-box {
+  overflow-y: auto;
+  max-height: 380px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 0.85rem;
+  table-layout: fixed;
 }
 
 .history-table th {
@@ -1620,7 +1627,6 @@ h4 {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  border-bottom: 1px solid var(--border-light);
   background: var(--bg-tertiary);
   white-space: nowrap;
   vertical-align: middle;
@@ -1654,14 +1660,14 @@ h4 {
   text-align: left;
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  width: 18%;
+  width: 20%;
 }
 
 .history-table th:nth-child(2),
 .history-table td:nth-child(2),
 .history-cell-service {
   text-align: left;
-  width: 25%;
+  width: 26%;
 }
 
 .history-table th:nth-child(3),
@@ -1677,14 +1683,14 @@ h4 {
 .history-table td:nth-child(4),
 .history-cell-status {
   text-align: left;
-  width: 18%;
+  width: 16%;
 }
 
 .history-table th:nth-child(5),
 .history-table td:nth-child(5),
 .history-cell-tx {
   text-align: left;
-  width: 25%;
+  width: 24%;
 }
 
 .history-tx-wrapper {
@@ -2270,13 +2276,11 @@ h4 {
     font-size: 0.78rem;
   }
 
-  .history-table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  .history-table-inner {
+    min-width: 540px;
   }
 
   .history-table {
-    min-width: 540px;
     font-size: 0.8rem;
   }
 

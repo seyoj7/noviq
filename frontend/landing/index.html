@@ -601,21 +601,29 @@
       <p class="section-subtitle">Your recent agent runs and payment authorizations.</p>
     </div>
     <div class="history-table-wrapper glass-panel">
-      <table class="history-table">
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Service</th>
-            <th>Cost</th>
-            <th>Status</th>
-            <th>Tx Hash</th>
-          </tr>
-        </thead>
-        <tbody id="history-tbody">
-        </tbody>
-      </table>
-      <div class="history-empty" id="history-empty">
-        <p>No transactions yet.</p>
+      <div class="history-table-inner">
+        <div class="history-table-header-box">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Service</th>
+                <th>Cost</th>
+                <th>Status</th>
+                <th>Tx Hash</th>
+              </tr>
+            </thead>
+          </table>
+        </div>
+        <div class="history-table-body-box">
+          <table class="history-table">
+            <tbody id="history-tbody">
+            </tbody>
+          </table>
+          <div class="history-empty" id="history-empty">
+            <p>No transactions yet.</p>
+          </div>
+        </div>
       </div>
     </div>
   </section>
