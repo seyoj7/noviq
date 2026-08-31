@@ -60,12 +60,12 @@ async def ask_llm(input_data: str) -> str:
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "meta/llama-3.1-8b-instruct",
+        "model": "nvidia/nemotron-3-super-120b-a12b",
         "messages": [
             {"role": "user", "content": input_data}
         ],
-        "max_tokens": 512,
-        "temperature": 0.7
+        "max_tokens": 10000,
+        "temperature": 1
     }
     
     try:
@@ -133,10 +133,10 @@ SERVICE_REGISTRY: dict[str, ServiceDefinition] = {
         price_usdc=0.05,
         fn=fetch_twitter,
     ),
-    "llama-3.1-8b-instruct": ServiceDefinition(
-        id="llama-3.1-8b-instruct",
-        name="🧠 llama-3.1-8b",
-        description="LLM model for advanced reasoning and text generation.",
+    "nemotron-3-super": ServiceDefinition(
+        id="nemotron-3-super",
+        name="🧠 nemotron-3",
+        description="Open, efficient hybrid Mamba-Transformer MoE with 1M context",
         price_usdc=0.10,
         fn=ask_llm,
     ),

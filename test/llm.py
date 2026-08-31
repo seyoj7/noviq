@@ -1,9 +1,9 @@
 import requests
 
 response = requests.post("http://127.0.0.1:8000/run",
-    headers={"Authorization": "nvq_d730c9037a729f68b27cc3cc5aa26b8d57c96f40b95dd641"},
+    headers={"Authorization": "nvq_ca8975e3a95afb48587516dfa5d512563086a9a5d355be24"},
     json={
-        "service_id": "llama-3.1-8b-instruct",
+        "service_id": "nemotron-3-super",
         "input_data": "What is BTC?"
 })
 print(response.json()["result"])
