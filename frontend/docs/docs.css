@@ -11,6 +11,9 @@
 }
 
 .docs-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   border-bottom: 1px solid var(--border-light);
   background: var(--bg-navbar);
   backdrop-filter: blur(12px);
@@ -41,9 +44,11 @@
 .docs-layout {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
-  max-width: 1140px;
+  max-width: 1320px;
   margin: 0 auto;
   min-height: calc(100vh - 68px);
+  position: relative;
+  z-index: 1;
 }
 
 /* Sidebar Navigation */
@@ -100,12 +105,12 @@
 
 /* Main Content Area */
 .docs-main {
-  padding: var(--space-2xl) var(--space-2xl) 16px;
+  padding: var(--space-2xl) var(--space-3xl) 16px;
   min-width: 0;
 }
 
 .docs-article {
-  max-width: 768px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
@@ -196,12 +201,12 @@
 
 /* Docs Code Block */
 .docs-code-block-wrapper {
-  background: var(--bg-dark);
-  border: 1px solid var(--border-dark);
+  background: #18171A;
+  border: 1px solid var(--border-dark, #302D33);
   border-radius: var(--radius-sm);
   overflow: hidden;
   margin-bottom: var(--space-xl);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
 }
 
 .docs-code-block-header {
@@ -209,8 +214,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 16px;
-  background: var(--bg-dark-header);
-  border-bottom: 1px solid var(--border-dark);
+  background: #201F24;
+  border-bottom: 1px solid var(--border-dark, #302D33);
 }
 
 .docs-code-lang {
@@ -224,7 +229,7 @@
 
 .docs-btn-copy {
   background: transparent;
-  border: 1px solid var(--border-dark);
+  border: 1px solid var(--border-dark, #302D33);
   border-radius: 4px;
   color: var(--text-muted-on-dark);
   font-family: var(--font-sans);
@@ -248,7 +253,7 @@
   font-size: 0.9rem;
   line-height: 1.6;
   color: #E8E3DC;
-  background: var(--bg-dark);
+  background: #18171A;
 }
 
 .docs-code-block code {

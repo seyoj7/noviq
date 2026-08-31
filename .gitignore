@@ -1,12 +1,2 @@
+__pycache__
 .env
-__pycache__/
-/backend/scripts
-/data
-.vscode
-.vercel
-node_modules
-.vercel
-.env*
-/dev.py
-/test
-/README.md

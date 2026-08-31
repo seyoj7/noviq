@@ -111,7 +111,11 @@ body {
   min-height: 100vh;
 }
 
-button, a, input, select, textarea {
+button,
+a,
+input,
+select,
+textarea {
   touch-action: manipulation;
 }
 
@@ -233,6 +237,21 @@ h4 {
   padding-bottom: var(--space-2xl);
 }
 
+.section-history {
+  position: relative;
+}
+
+.section-history::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 1px;
+  background-color: var(--border-light);
+}
+
 .section-manifesto {
   padding: 0.5rem 0 6rem;
   background: transparent;
@@ -332,8 +351,6 @@ h4 {
 
 .section-history {
   padding-top: var(--space-3xl);
-  content-visibility: auto;
-  contain-intrinsic-size: auto 400px;
 }
 
 .section-header {
@@ -1603,10 +1620,13 @@ h4 {
 .history-table-header-box {
   background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-light);
+  padding-right: 8px; /* Reserves the exact width of the 8px scrollbar in the body box */
+  box-sizing: border-box;
 }
 
 .history-table-body-box {
-  overflow-y: auto;
+  overflow-y: scroll; /* Ensures consistent 8px scrollbar track matching header offset */
+  overflow-x: hidden;
   max-height: 380px;
   -webkit-overflow-scrolling: touch;
 }
