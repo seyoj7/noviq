@@ -1,6 +1,7 @@
 from __future__ import annotations
 import logging
 import sys
+import uuid
 from pathlib import Path
 
 # Ensure the project root is on sys.path so `from backend import ...` works
@@ -16,6 +17,7 @@ from fastapi.responses import JSONResponse
 from backend import payment, wallet, database
 from backend.wallet import to_checksum_address
 from backend import services as service_module
+from backend.services import ServiceExecutionError
 from backend.auth import (
     generate_api_key,
     generate_nonce,
@@ -146,6 +148,7 @@ async def run_service(
 
     service_def = service_module.SERVICE_REGISTRY[body.service_id]
 
+    # Step 1: Handle x402 payment authorization challenge/verification
     payment_result = await handle_payment_flow(
         x_payment_authorization=x_payment_authorization,
         item_id=body.service_id,
@@ -153,20 +156,50 @@ async def run_service(
         description=f"Run {service_def.name} on Noviq",
         user_id=wallet_address,
     )
-    
+
     if isinstance(payment_result, JSONResponse):
         return payment_result
-        
-    tx_hash = payment_result
 
+    # Step 2: Balance pre-check (verify user can pay before doing work)
+    try:
+        await payment.check_balance(wallet_address, service_def.price_usdc)
+    except ValueError as exc:
+        raise HTTPException(status_code=402, detail=str(exc))
+
+    # Step 3: Create pending request for audit trail
+    request_id = str(uuid.uuid4())
+    database.create_pending_request(
+        request_id=request_id,
+        user_id=wallet_address,
+        service_id=body.service_id,
+        cost=service_def.price_usdc,
+    )
+
+    # Step 4: Run the service BEFORE charging
     try:
         result = await service_module.run_service(body.service_id, body.input_data)
-    except ValueError as exc:
+    except (ValueError, ServiceExecutionError) as exc:
+        database.fail_pending_request(request_id, str(exc))
         raise HTTPException(status_code=400, detail=str(exc))
     except httpx.HTTPStatusError as exc:
+        database.fail_pending_request(request_id, f"Service upstream error: {exc}")
         logger.error("Service error: %s", exc)
         raise HTTPException(status_code=502, detail="Service returned an error.")
+    except Exception as exc:
+        database.fail_pending_request(request_id, f"Unexpected error: {exc}")
+        logger.error("Unexpected service error: %s", exc)
+        raise HTTPException(status_code=500, detail="Internal service error.")
 
+    # Step 5: Service succeeded — now charge the user
+    try:
+        tx_hash = await payment.execute_payment(wallet_address, service_def.price_usdc)
+    except ValueError as exc:
+        database.fail_pending_request(request_id, f"Payment failed after service success: {exc}")
+        logger.error("Payment failed after service success: %s", exc)
+        raise HTTPException(status_code=402, detail=str(exc))
+
+    # Step 6: Record success
+    database.complete_pending_request(request_id, tx_hash)
     database.save_transaction(
         user_id=wallet_address,
         service_id=body.service_id,
@@ -201,18 +234,42 @@ async def run_simple(
 
     service_def = service_module.SERVICE_REGISTRY[body.service_id]
 
-    # Execute payment directly (wallet lookup + on-chain transfer)
+    # Step 1: Balance pre-check (reject early if user can't pay)
     try:
-        tx_hash = await payment.execute_payment(wallet_address, service_def.price_usdc)
+        await payment.check_balance(wallet_address, service_def.price_usdc)
     except ValueError as exc:
         raise HTTPException(status_code=402, detail=str(exc))
 
-    # Run the service
+    # Step 2: Create pending request for audit trail
+    request_id = str(uuid.uuid4())
+    database.create_pending_request(
+        request_id=request_id,
+        user_id=wallet_address,
+        service_id=body.service_id,
+        cost=service_def.price_usdc,
+    )
+
+    # Step 3: Run the service BEFORE charging
     try:
         result = await service_module.run_service(body.service_id, body.input_data)
-    except ValueError as exc:
+    except (ValueError, ServiceExecutionError) as exc:
+        database.fail_pending_request(request_id, str(exc))
         raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        database.fail_pending_request(request_id, f"Unexpected error: {exc}")
+        logger.error("Unexpected service error: %s", exc)
+        raise HTTPException(status_code=500, detail="Internal service error.")
 
+    # Step 4: Service succeeded — now charge the user
+    try:
+        tx_hash = await payment.execute_payment(wallet_address, service_def.price_usdc)
+    except ValueError as exc:
+        database.fail_pending_request(request_id, f"Payment failed after service success: {exc}")
+        logger.error("Payment failed after service success: %s", exc)
+        raise HTTPException(status_code=402, detail=str(exc))
+
+    # Step 5: Record success
+    database.complete_pending_request(request_id, tx_hash)
     database.save_transaction(
         user_id=wallet_address,
         service_id=body.service_id,

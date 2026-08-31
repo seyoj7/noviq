@@ -113,6 +113,19 @@ def init_db():
                         consumed BOOLEAN NOT NULL DEFAULT FALSE
                     )
                 """)
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS pending_requests (
+                        id TEXT PRIMARY KEY,
+                        user_id TEXT NOT NULL,
+                        service_id TEXT NOT NULL,
+                        cost REAL NOT NULL,
+                        status TEXT NOT NULL DEFAULT 'pending',
+                        created_at TEXT NOT NULL,
+                        completed_at TEXT,
+                        tx_hash TEXT,
+                        error_message TEXT
+                    )
+                """)
             conn.commit()
         _db_initialized = True
         logger.info("Database schema initialised.")
@@ -350,3 +363,56 @@ def cleanup_expired_nonces():
             )
         conn.commit()
 
+
+# ── Pending Request Operations ──────────────────────────────────────
+
+def create_pending_request(request_id: str, user_id: str, service_id: str, cost: float):
+    with _borrow() as conn:
+        if conn is None:
+            return
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO pending_requests (id, user_id, service_id, cost, status, created_at)
+                VALUES (%s, %s, %s, %s, 'pending', %s)
+            """, (
+                request_id,
+                user_id,
+                service_id,
+                cost,
+                datetime.now(timezone.utc).isoformat()
+            ))
+        conn.commit()
+
+
+def complete_pending_request(request_id: str, tx_hash: str):
+    with _borrow() as conn:
+        if conn is None:
+            return
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE pending_requests
+                SET status = 'completed', tx_hash = %s, completed_at = %s
+                WHERE id = %s
+            """, (
+                tx_hash,
+                datetime.now(timezone.utc).isoformat(),
+                request_id,
+            ))
+        conn.commit()
+
+
+def fail_pending_request(request_id: str, error_message: str):
+    with _borrow() as conn:
+        if conn is None:
+            return
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE pending_requests
+                SET status = 'failed', error_message = %s, completed_at = %s
+                WHERE id = %s
+            """, (
+                error_message,
+                datetime.now(timezone.utc).isoformat(),
+                request_id,
+            ))
+        conn.commit()

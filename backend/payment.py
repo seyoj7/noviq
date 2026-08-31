@@ -59,6 +59,21 @@ async def verify_authorization(auth_header: str, expected_amount_usdc: float) ->
         return False, "Invalid authorization format"
 
 
+async def check_balance(user_id: str, required_usdc: float) -> None:
+    """Verify the user has sufficient USDC balance without initiating a transfer.
+    
+    Raises ValueError if the wallet lacks funds, so the caller can reject
+    the request before doing any expensive work.
+    """
+    wallet_info = await get_or_create_wallet(user_id)
+    if wallet_info.usdc_balance < required_usdc:
+        raise ValueError(
+            f"Insufficient USDC balance: wallet has {wallet_info.usdc_balance} USDC, "
+            f"but {required_usdc} USDC is required. "
+            f"Please fund your wallet ({wallet_info.address}) with USDC on Arc Testnet."
+        )
+
+
 async def execute_payment(user_id: str, expected_amount_usdc: float) -> str:
     # Get or create the wallet (this also fetches the current balance)
     wallet_info = await get_or_create_wallet(user_id)

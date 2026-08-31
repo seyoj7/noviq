@@ -7,11 +7,21 @@ from backend.config import NVIDIA_API_KEY
 
 logger = logging.getLogger(__name__)
 
-# Service functions (mock implementations)
+
+class ServiceExecutionError(Exception):
+    """Raised when a service fails to produce a valid result.
+    
+    This signals the caller that the request should NOT be charged,
+    as opposed to a successful result string which should be charged.
+    """
+    pass
+
+
+# Service functions
 async def fetch_twitter(input_data: str) -> str:
     handle = input_data.strip().lstrip('@')
     if not handle:
-        return "Error: Please provide a valid Twitter handle."
+        raise ServiceExecutionError("Please provide a valid Twitter handle.")
         
     # Using a free public Nitter instance (xcancel.com) that works on Vercel
     url = f"https://xcancel.com/{handle}"
@@ -25,7 +35,7 @@ async def fetch_twitter(input_data: str) -> str:
             
             # xcancel might return 404 if the user doesn't exist
             if resp.status_code == 404:
-                return f"Error: User @{handle} not found."
+                raise ServiceExecutionError(f"User @{handle} not found.")
             resp.raise_for_status()
             
             soup = BeautifulSoup(resp.text, 'html.parser')
@@ -38,7 +48,9 @@ async def fetch_twitter(input_data: str) -> str:
                     tweets.append(content.get_text(strip=True))
                     
             if not tweets:
-                return f"No recent tweets found for @{handle} (or the profile is protected)."
+                raise ServiceExecutionError(
+                    f"No recent tweets found for @{handle} (or the profile is protected)."
+                )
                 
             formatted = f"Recent tweets from @{handle}:\n\n"
             for t in tweets:
@@ -46,13 +58,17 @@ async def fetch_twitter(input_data: str) -> str:
                 
             return formatted.strip("\n- ")
             
+    except ServiceExecutionError:
+        raise
     except httpx.HTTPError as e:
         logger.error("Scraper error: %s", e)
-        return f"Error fetching Twitter data. The public proxy might be down. Try again later."
+        raise ServiceExecutionError(
+            "Error fetching Twitter data. The public proxy might be down. Try again later."
+        )
 
 async def ask_llm(input_data: str) -> str:
     if not NVIDIA_API_KEY:
-        return "Error: NVIDIA_API_KEY is not configured."
+        raise ServiceExecutionError("NVIDIA_API_KEY is not configured.")
     
     url = "https://integrate.api.nvidia.com/v1/chat/completions"
     headers = {
@@ -76,12 +92,14 @@ async def ask_llm(input_data: str) -> str:
             return data["choices"][0]["message"]["content"]
     except httpx.HTTPError as e:
         logger.error("LLM API error: %s", e)
-        return f"Error communicating with LLM API. Please try again later."
+        raise ServiceExecutionError(
+            "Error communicating with LLM API. Please try again later."
+        )
 
 async def get_token_price(input_data: str) -> str:
     token_id = input_data.strip().lower()
     if not token_id:
-        return "Error: Please provide a token id (e.g. 'bitcoin', 'ethereum')."
+        raise ServiceExecutionError("Please provide a token id (e.g. 'bitcoin', 'ethereum').")
         
     url = f"https://api.coingecko.com/api/v3/simple/price?ids={token_id}&vs_currencies=usd"
     
@@ -95,10 +113,16 @@ async def get_token_price(input_data: str) -> str:
                 price = data[token_id]["usd"]
                 return f"{price}"
             else:
-                return f"Error: Could not find price for token '{token_id}'"
+                raise ServiceExecutionError(
+                    f"Could not find price for token '{token_id}'"
+                )
+    except ServiceExecutionError:
+        raise
     except httpx.HTTPError as e:
         logger.error("CoinGecko API error: %s", e)
-        return f"Error fetching price for '{token_id}'. Please try again later."
+        raise ServiceExecutionError(
+            f"Error fetching price for '{token_id}'. Please try again later."
+        )
 
 # Service Registry
 ServiceFn = Callable[[str], Coroutine[Any, Any, str]]
@@ -151,3 +175,4 @@ async def run_service(service_id: str, input_data: str) -> str:
     result = await service.fn(input_data)
     logger.info("Service '%s' completed successfully.", service_id)
     return result
+
