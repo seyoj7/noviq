@@ -28,8 +28,8 @@ There are no accounts to create, no credit cards to enter, and no monthly invoic
                                                                       │
                                                                       ▼
                                                               ┌──────────────┐
-                                                              │  5. Auto-pay │
-                                                              │  (on-chain)  │
+                                                              │ 5. Auto-pay  │
+                                                              │(on success)  │
                                                               └──────────────┘
 ```
 
@@ -37,7 +37,7 @@ There are no accounts to create, no credit cards to enter, and no monthly invoic
 2. **Generate an API key** — sign a one-time challenge message to prove ownership
 3. **Fund your wallet** — grab testnet USDC from the [Circle Faucet](https://faucet.circle.com/)
 4. **Call any service** — pass your `nvq_` API key in the `Authorization` header
-5. **Automatic payment** — USDC is transferred on-chain from your wallet to the seller before the result is returned
+5. **Automatic payment** — USDC is transferred on-chain from your wallet to the seller **only if the service succeeds**. You are never charged for failed requests.
 
 ---
 
@@ -232,7 +232,7 @@ curl https://your-app.vercel.app/auth/nonce/0xYourWalletAddress
 
 #### `POST /run` — Direct Payment
 
-Runs a service and automatically transfers USDC from the user's Circle wallet to the seller wallet. **Requires API key.**
+Runs a service and automatically transfers USDC from the user's Circle wallet to the seller wallet **upon successful execution**. **Requires API key.**
 
 ```bash
 curl -X POST https://your-app.vercel.app/run \

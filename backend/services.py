@@ -76,11 +76,11 @@ async def ask_llm(input_data: str) -> str:
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "nvidia/nemotron-3-super-120b-a12b",
+        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
         "messages": [
             {"role": "user", "content": input_data}
         ],
-        "max_tokens": 10000,
+        "max_tokens": 16384,
         "temperature": 1
     }
     
@@ -157,10 +157,10 @@ SERVICE_REGISTRY: dict[str, ServiceDefinition] = {
         price_usdc=0.05,
         fn=fetch_twitter,
     ),
-    "nemotron-3-super": ServiceDefinition(
-        id="nemotron-3-super",
-        name="🧠 nemotron-3",
-        description="Open, efficient hybrid Mamba-Transformer MoE with 1M context",
+    "nemotron-3.5": ServiceDefinition(
+        id="nemotron-3.5",
+        name="🧠 nemotron-3.5",
+        description="Fastest 30B A3B MoE model with leading domain accuracy for specialized agentic tasks",
         price_usdc=0.10,
         fn=ask_llm,
     ),
