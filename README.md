@@ -1,6 +1,6 @@
 ## Overview
 
-Noviq is an **AI services marketplace** where every API call is paid for with **USDC micropayments** settled on the [Arc Testnet](https://developers.circle.com). Users connect an EVM wallet, fund it with testnet USDC, and consume AI services — each request is automatically settled on-chain via [Circle Programmable Wallets](https://developers.circle.com/w3s/programmable-wallets-overview).
+Noviq is an **API service marketplace** where every API call is paid for with **USDC micropayments** settled on the [Arc Testnet](https://developers.circle.com). Users connect an EVM wallet, fund it with testnet USDC, and consume AI services — each request is automatically settled on-chain via [Circle Programmable Wallets](https://developers.circle.com/w3s/programmable-wallets-overview).
 
 There are no accounts to create, no credit cards to enter, and no monthly invoices. You pay exactly for what you use — one request at a time.
 
@@ -14,7 +14,6 @@ There are no accounts to create, no credit cards to enter, and no monthly invoic
 | 🔑 | **API key management** | Generate, list, and revoke keys from the dashboard or API |
 | ⚡ | **Rate limiting** | 60 req/min per key, database-backed sliding window |
 | 🧾 | **On-chain audit trail** | Every transaction is recorded with its on-chain tx hash |
-| 🌗 | **Dark & light themes** | Across landing page, API dashboard, and documentation |
 
 ---
 
@@ -22,14 +21,14 @@ There are no accounts to create, no credit cards to enter, and no monthly invoic
 
 ```
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│  1. Connect  │────▶│  2. Get Key  │────▶│  3. Fund    │────▶│  4. Call     │
-│    Wallet    │     │  (sign msg)  │     │   (USDC)     │     │  Services   │
+│  1. Connect  │────▶│  2. Get Key  │────▶│  3. Fund    │────▶│  4. Call    │
+│    Wallet    │     │  (sign msg)  │     │   (USDC)     │     │   Services   │
 └──────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
                                                                       │
                                                                       ▼
                                                               ┌──────────────┐
                                                               │ 5. Auto-pay  │
-                                                              │(on success)  │
+                                                              │ (on success) │
                                                               └──────────────┘
 ```
 
@@ -38,18 +37,6 @@ There are no accounts to create, no credit cards to enter, and no monthly invoic
 3. **Fund your wallet** — grab testnet USDC from the [Circle Faucet](https://faucet.circle.com/)
 4. **Call any service** — pass your `nvq_` API key in the `Authorization` header
 5. **Automatic payment** — USDC is transferred on-chain from your wallet to the seller **only if the service succeeds**. You are never charged for failed requests.
-
----
-
-## Services
-
-| ID | Name | Description | Price |
-|---|---|---|---|
-| `token_price` | 📈 Token Price | Real-time cryptocurrency prices via CoinGecko | $0.001 USDC |
-| `twitter_fetch` | 🐦 Twitter Fetch | Recent tweets for any handle via public proxy | $0.05 USDC |
-| `llama-3.1-8b-instruct` | 🧠 Llama 3.1 8B | LLM text generation & reasoning via NVIDIA NIM | $0.10 USDC |
-
-New services can be added by defining a `ServiceDefinition` in [`backend/services.py`](backend/services.py) — just provide an async function, a price, and a description.
 
 ---
 
@@ -62,7 +49,6 @@ New services can be added by defining a `ServiceDefinition` in [`backend/service
 | **Python 3.10+** | Backend runtime |
 | **PostgreSQL** | Persistent storage (or a hosted provider like [Neon](https://neon.tech) / [Supabase](https://supabase.com)) |
 | **Circle Developer Account** | Programmable Wallets & USDC transfers — [console.circle.com](https://console.circle.com) |
-| **NVIDIA NIM API key** | Powers the Llama 3.1 8B service — [build.nvidia.com](https://build.nvidia.com) |
 
 ### Installation
 
@@ -406,42 +392,6 @@ All errors return a consistent JSON structure:
 
 ---
 
-## Python Integration
-
-```python
-import requests
-
-API_KEY = "nvq_your_key_here"
-BASE    = "https://your-app.vercel.app"
-HEADERS = {
-    "Authorization": f"Bearer {API_KEY}",
-    "Content-Type": "application/json",
-}
-
-def run(service_id: str, input_data: str) -> dict:
-    resp = requests.post(
-        f"{BASE}/run",
-        headers=HEADERS,
-        json={"service_id": service_id, "input_data": input_data},
-    )
-    resp.raise_for_status()
-    return resp.json()
-
-# Real-time crypto price
-price = run("token_price", "ethereum")
-print(f"ETH: ${price['result']}")
-
-# AI text generation
-answer = run("llama-3.1-8b-instruct", "Explain blockchain in one paragraph")
-print(answer["result"])
-
-# Fetch recent tweets
-tweets = run("twitter_fetch", "elonmusk")
-print(tweets["result"])
-```
-
----
-
 ## Project Structure
 
 ```
@@ -505,11 +455,8 @@ noviq/
 | **Payments** | Circle Programmable Wallets, USDC ERC-20 transfers |
 | **Cryptography** | PyCryptodome (RSA-OAEP encryption), eth-account (EIP-191 signatures) |
 | **HTTP client** | httpx (async) |
-| **Scraping** | BeautifulSoup 4 |
-| **LLM** | NVIDIA NIM API (Llama 3.1 8B Instruct) |
 | **Frontend** | Vanilla HTML, CSS, JavaScript |
 | **Typography** | Inter, JetBrains Mono, Playfair Display (Google Fonts) |
-| **Hosting** | Vercel (Python serverless + static files) |
 
 ---
 
