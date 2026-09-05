@@ -53,9 +53,11 @@
 
   --transition-fast: 0.15s ease-out;
   --transition-base: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  color-scheme: light;
 }
 
 [data-theme="dark"] {
+  color-scheme: dark;
   --bg-primary: #18171A;
   --bg-secondary: #222025;
   --bg-tertiary: #302D33;
@@ -1620,12 +1622,14 @@ h4 {
 .history-table-header-box {
   background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-light);
-  padding-right: 8px; /* Reserves the exact width of the 8px scrollbar in the body box */
+  padding-right: 8px;
+  /* Reserves the exact width of the 8px scrollbar in the body box */
   box-sizing: border-box;
 }
 
 .history-table-body-box {
-  overflow-y: scroll; /* Ensures consistent 8px scrollbar track matching header offset */
+  overflow-y: scroll;
+  /* Ensures consistent 8px scrollbar track matching header offset */
   overflow-x: hidden;
   max-height: 380px;
   -webkit-overflow-scrolling: touch;

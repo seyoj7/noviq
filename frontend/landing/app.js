@@ -360,9 +360,9 @@ function renderServiceCards() {
 }
 
 const EXAMPLE_INPUTS = {
-  token_price: "bitcoin",
-  twitter_fetch: "elonmusk",
-  "llama-3.1-8b-instruct": "What is the capital of France?",
+  "token_price": "bitcoin",
+  "twitter_fetch": "elonmusk",
+  "nemotron-3-super": "What is the capital of France?",
 };
 
 function selectService(service) {

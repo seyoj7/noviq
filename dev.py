@@ -1,8 +1,16 @@
 import os
 import uvicorn
+from fastapi import Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from backend.main import app
+
+# Disable browser caching during local development
+@app.middleware("http")
+async def no_cache_middleware(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    return response
 
 # For local development, we want to mimic the Vercel routing
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend")
@@ -48,6 +56,18 @@ if os.path.exists(FRONTEND_DIR):
     @app.get("/api/styles.css")
     async def serve_api_styles():
         return FileResponse("frontend/api/styles.css")
+
+    @app.get("/playground/")
+    async def serve_playground_index():
+        return FileResponse("frontend/playground/index.html")
+
+    @app.get("/playground/app.js")
+    async def serve_playground_app():
+        return FileResponse("frontend/playground/app.js")
+
+    @app.get("/playground/styles.css")
+    async def serve_playground_styles():
+        return FileResponse("frontend/playground/styles.css")
 
 if __name__ == "__main__":
     print("Starting development server...")
