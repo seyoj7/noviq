@@ -199,7 +199,7 @@
               <div id="service-description" class="service-desc-text">Select a service to see details.</div>
             </div>
             
-            <div class="form-group" style="flex: 1; display: flex; flex-direction: column; margin-top: var(--space-lg);">
+            <div class="form-group" style="flex: 1; display: flex; flex-direction: column;">
               <label for="input-data" class="form-label text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem; color: var(--text-secondary);">Input Data</label>
               <textarea id="input-data" class="form-input code-input custom-textarea" placeholder="Enter input data here..." style="flex: 1; min-height: 180px; resize: none;"></textarea>
               <div class="form-hint" style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.8rem;">Enter the required input string for the selected service.</div>
@@ -218,7 +218,7 @@
           <div class="playground-output">
              <div class="playground-output-header">
                <h3 class="playground-panel-title">
-                 <span style="color: var(--text-secondary); margin-right: 6px; font-family: monospace;">{}</span> Raw response
+                 <span style="color: var(--text-secondary); margin-right: 6px; font-family: monospace;">{}</span> JSON response
                </h3>
                <div class="output-actions">
                  <span id="response-status" class="response-badge hidden">200 OK</span>
@@ -247,9 +247,6 @@
                       </button>
                    </div>
                 </div>
-             </div>
-             <div class="output-bottom-hint">
-               Enter a valid Personal API key and request input.
              </div>
           </div>
         </div>

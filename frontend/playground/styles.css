@@ -371,7 +371,10 @@ body.playground-page .playground-main-section {
 
 .playground-output-content {
   flex: 1;
-  background-color: transparent;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 16px;
   overflow-y: auto;
   position: relative;
   font-family: var(--font-mono);

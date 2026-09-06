@@ -325,17 +325,7 @@ function renderResponse(isSuccess, status, duration, data) {
   dom.btnCopyResponse.classList.remove('hidden');
 
   // Format the output
-  let displayStr = "";
-  if (data.result !== undefined) {
-    // If it's a string, just show the string, else pretty print JSON
-    if (typeof data.result === 'string') {
-      displayStr = data.result;
-    } else {
-      displayStr = JSON.stringify(data.result, null, 2);
-    }
-  } else {
-    displayStr = JSON.stringify(data, null, 2);
-  }
+  const displayStr = JSON.stringify(data, null, 2);
 
   const textNode = document.createTextNode(displayStr);
   dom.outputContent.appendChild(textNode);
