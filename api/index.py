@@ -15,8 +15,9 @@ from backend.main import app as _backend_app
 class PathRewriteMiddleware:
     """
     Normalizes request paths from Vercel rewrites or Next.js proxies.
-    Automatically handles endpoints prefixed with '/api/index/' or '/api/'
-    by stripping the prefix so they route directly to backend endpoints.
+    Inspects Vercel's x-matched-path / x-forwarded-uri headers and
+    strips prefixes like /api/index.py, /api/index, or /api so routes
+    match backend definitions regardless of edge rewrite format.
     """
 
     def __init__(self, app: ASGIApp):
@@ -24,8 +25,17 @@ class PathRewriteMiddleware:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         if scope["type"] == "http":
+            headers = dict(scope.get("headers", []))
+            matched_path = headers.get(b"x-matched-path", b"").decode("utf-8")
+            if matched_path and not matched_path.startswith("/api/index"):
+                scope["path"] = matched_path
+
             path = scope.get("path", "")
-            if path.startswith("/api/index/"):
+            if path.startswith("/api/index.py/"):
+                scope["path"] = path[13:]
+            elif path == "/api/index.py":
+                scope["path"] = "/"
+            elif path.startswith("/api/index/"):
                 scope["path"] = path[10:]
             elif path == "/api/index":
                 scope["path"] = "/"
@@ -33,13 +43,14 @@ class PathRewriteMiddleware:
                 scope["path"] = path[4:]
             elif path == "/api":
                 scope["path"] = "/"
+
         await self.app(scope, receive, send)
 
 
 # Add path normalization middleware
 _backend_app.add_middleware(PathRewriteMiddleware)
 
-# Root fallback route
+# Root fallback route for API check
 if not any(getattr(route, "path", None) == "/" for route in _backend_app.routes):
     @_backend_app.get("/", tags=["Meta"])
     async def root_status():
