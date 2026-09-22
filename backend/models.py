@@ -80,7 +80,7 @@ class ApiKeyCreatedResponse(BaseModel):
 
 class RevokeApiKeyRequest(BaseModel):
     wallet_address: str = Field(..., description="EVM wallet address that owns this key")
-    key_prefix: str = Field(..., description="Prefix of the key to revoke (e.g. 'nvq_a1b2c3d4')")
+    key_prefix: str | None = Field(default=None, description="Prefix of the key to revoke (e.g. 'nvq_a1b2c3d4')")
     signature: str | None = Field(default=None, description="EIP-191 signature (required if no API key in Authorization header)")
     nonce: str | None = Field(default=None, description="One-time nonce (required if using signature auth)")
 

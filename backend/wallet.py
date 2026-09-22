@@ -86,40 +86,55 @@ async def create_wallet(user_id: str) -> WalletInfo:
         )
 
 
+async def _call_rpc(method: str, params: list[Any]) -> str:
+    urls = list(
+        dict.fromkeys(
+            [
+                ARC_TESTNET_RPC_URL,
+                "https://rpc.testnet.arc.network",
+                "https://arc-testnet-rpc.publicnode.com",
+            ]
+        )
+    )
+    last_err: Exception | None = None
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        for url in urls:
+            try:
+                resp = await client.post(
+                    url,
+                    json={
+                        "jsonrpc": "2.0",
+                        "method": method,
+                        "params": params,
+                        "id": 1,
+                    },
+                )
+                if resp.status_code == 429:
+                    logger.warning("RPC %s returned 429 Too Many Requests, trying fallback RPC...", url)
+                    continue
+                resp.raise_for_status()
+                return resp.json().get("result", "0x0")
+            except Exception as e:
+                logger.warning("RPC %s call %s failed: %s", url, method, e)
+                last_err = e
+                continue
+
+    if last_err:
+        raise last_err
+    return "0x0"
+
+
 async def get_wallet_balance(wallet_id: str, user_id: str) -> WalletInfo:
     if not CIRCLE_API_KEY:
         raise ValueError("CIRCLE_API_KEY is not configured.")
 
     wallet_info = await _get_wallet_info(wallet_id, user_id)
 
-    # Fetch balance directly from the Arc Testnet RPC
+    # Fetch balance directly from the Arc Testnet RPC with automatic endpoint fallbacks
     data = "0x70a08231" + wallet_info.address.replace("0x", "").zfill(64)
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        # Check ERC20 Balance
-        resp_erc20 = await client.post(
-            ARC_TESTNET_RPC_URL,
-            json={
-                "jsonrpc": "2.0",
-                "method": "eth_call",
-                "params": [{"to": USDC_ADDRESS, "data": data}, "latest"],
-                "id": 1,
-            },
-        )
-        resp_erc20.raise_for_status()
-        erc20_result = resp_erc20.json().get("result", "0x0")
-        
-        # Check Native Balance
-        resp_native = await client.post(
-            ARC_TESTNET_RPC_URL,
-            json={
-                "jsonrpc": "2.0",
-                "method": "eth_getBalance",
-                "params": [wallet_info.address, "latest"],
-                "id": 2,
-            },
-        )
-        resp_native.raise_for_status()
-        native_result = resp_native.json().get("result", "0x0")
+    erc20_result = await _call_rpc("eth_call", [{"to": USDC_ADDRESS, "data": data}, "latest"])
+    native_result = await _call_rpc("eth_getBalance", [wallet_info.address, "latest"])
         
     # USDC has 6 decimals on Circle contracts, but native gas tokens on EVM often have 18 decimals.
     # We will compute both and use the sum (converting native wei if it has 18 decimals, though Circle might use 6 or 18).

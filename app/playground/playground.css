@@ -1,21 +1,19 @@
-html.playground-page,
+/* ── Playground Page Layout & Sticky Footer ───────────────────────── */
+.playground-page,
 body.playground-page {
-  height: 100vh;
-  max-height: 100vh;
-  overflow-y: auto; /* Allow scrolling when the screen height is too small */
-}
-
-body.playground-page {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
+.playground-page .navbar,
 body.playground-page .navbar {
   flex-shrink: 0;
 }
 
+.playground-page .playground-main-section,
 body.playground-page .playground-main-section {
-  flex: 1;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -25,6 +23,13 @@ body.playground-page .playground-main-section {
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
+}
+
+.playground-page .footer,
+body.playground-page .footer {
+  margin-top: auto;
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .playground-main-section::after {

@@ -1,44 +1,45 @@
 {
-  "version": 2,
-  "builds": [
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
     {
-      "src": "api/index.py",
-      "use": "@vercel/python"
+      "source": "/api/:path*",
+      "destination": "/api/index.py"
     },
     {
-      "src": "frontend/**",
-      "use": "@vercel/static"
+      "source": "/health",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/services",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/auth/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/run-service",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/run",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/transactions/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/wallet",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/wallet/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/api-keys/:path*",
+      "destination": "/api/index.py"
     }
-  ],
-  "routes": [
-    { "src": "/auth/(.*)", "dest": "/api/index.py" },
-    { "src": "/health", "dest": "/api/index.py" },
-    { "src": "/services", "dest": "/api/index.py" },
-    { "src": "/run-service", "dest": "/api/index.py" },
-    { "src": "/run", "dest": "/api/index.py" },
-    { "src": "/wallet(.*)", "dest": "/api/index.py" },
-    { "src": "/transactions/(.*)", "dest": "/api/index.py" },
-    { "src": "/api-keys(.*)", "dest": "/api/index.py" },
-    { "src": "/docs", "dest": "/api/index.py" },
-    { "src": "/redoc", "dest": "/api/index.py" },
-    { "src": "/openapi.json", "dest": "/api/index.py" },
-    { "src": "/frontend/(.*)", "dest": "/frontend/$1" },
-    { "src": "/assets/(.*)", "dest": "/frontend/assets/$1" },
-    { "src": "/api/$", "dest": "/frontend/api/index.html" },
-    { "src": "/api/app.js", "dest": "/frontend/api/app.js" },
-    { "src": "/api/styles.css", "dest": "/frontend/api/styles.css" },
-    { "src": "/playground/$", "dest": "/frontend/playground/index.html" },
-    { "src": "/playground/app.js", "dest": "/frontend/playground/app.js" },
-    { "src": "/playground/styles.css", "dest": "/frontend/playground/styles.css" },
-    { "src": "/documentation.html", "dest": "/frontend/docs/documentation.html" },
-    { "src": "/docs.css", "dest": "/frontend/docs/docs.css" },
-    { "src": "/docs.js", "dest": "/frontend/docs/docs.js" },
-    { "src": "/styles.css", "dest": "/frontend/landing/styles.css" },
-    { "src": "/app.js", "dest": "/frontend/landing/app.js" },
-    { "src": "/(.*\\.css)", "dest": "/frontend/landing/$1" },
-    { "src": "/(.*\\.js)", "dest": "/frontend/landing/$1" },
-    { "src": "/(.*\\.html)", "dest": "/frontend/landing/$1" },
-    { "src": "/(.*\\.png)", "dest": "/frontend/assets/$1" },
-    { "src": "/", "dest": "/frontend/landing/index.html" }
   ]
 }

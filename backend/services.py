@@ -82,16 +82,16 @@ async def ask_llm(input_data: str) -> str:
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "model": "nvidia/nemotron-3-super-120b-a12b",
         "messages": [
             {"role": "user", "content": input_data}
         ],
-        "max_tokens": 16384,
-        "temperature": 1
+        "max_tokens": 1024,
+        "temperature": 0.6
     }
     
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=20.0) as client:
             resp = await client.post(url, headers=headers, json=payload)
             resp.raise_for_status()
             data = resp.json()
@@ -165,8 +165,8 @@ SERVICE_REGISTRY: dict[str, ServiceDefinition] = {
     ),
     "nemotron-3-super": ServiceDefinition(
         id="nemotron-3-super",
-        name="🧠 nemotron-3-super",
-        description="Fastest 30B A3B MoE model with leading domain accuracy for agentic tasks.",
+        name="🧠 nemotron-3",
+        description="MoE model with leading domain accuracy for agentic tasks.",
         price_usdc=0.10,
         fn=ask_llm,
     ),

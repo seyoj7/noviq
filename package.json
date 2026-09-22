@@ -1,0 +1,27 @@
+{
+  "name": "noviq_v1",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"next,api\" -c \"cyan,magenta\" \"next dev\" \"python -m uvicorn backend.main:app --port 8000 --reload\"",
+    "dev:frontend": "next dev",
+    "dev:backend": "python -m uvicorn backend.main:app --port 8000 --reload",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "next": "16.3.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "concurrently": "^10.0.5",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.5",
+    "typescript": "^5"
+  }
+}
