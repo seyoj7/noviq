@@ -202,7 +202,7 @@ export default function PlaygroundPage() {
 
       <main className="section playground-main-section">
         <div className="container playground-container">
-          <div className="section-header" style={{ textAlign: "center", marginBottom: "1rem" }}>
+          <div className="section-header playground-header">
             <div className="section-eyebrow">TEST & DISCOVER</div>
             <h1 className="section-title">Playground</h1>
             <p className="section-subtitle">
@@ -213,57 +213,24 @@ export default function PlaygroundPage() {
           <div id="playground-connected" className="playground-layout glass-panel">
             {/* Top Section */}
             <div className="playground-top-section">
-              <label
-                className="form-label text-uppercase"
-                style={{
-                  letterSpacing: "0.05em",
-                  fontSize: "0.75rem",
-                  color: "var(--text-secondary)",
-                  display: "block",
-                  marginBottom: "8px",
-                }}
-              >
+              <label className="form-label text-uppercase key-label">
                 PERSONAL API KEY
               </label>
 
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "var(--space-md)",
-                  flexWrap: "wrap",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "var(--space-sm)",
-                    alignItems: "center",
-                    flex: 1,
-                    minWidth: "260px",
-                  }}
-                >
+              <div className="playground-key-row">
+                <div className="playground-key-input-group">
                   <input
                     type={showKey ? "text" : "password"}
                     id="playground-api-key"
                     className="form-input code-input custom-input"
                     placeholder="nvq_..."
-                    style={{ flex: 1, minWidth: "220px" }}
                     value={localApiKey}
                     onChange={(e) => {
                       setLocalApiKey(e.target.value);
                       setApiKey(e.target.value);
                     }}
                   />
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "var(--space-sm)",
-                      alignItems: "center",
-                      flexShrink: 0,
-                    }}
-                  >
+                  <div className="playground-key-actions">
                     <button
                       type="button"
                       id="btn-toggle-key-visibility"
@@ -283,9 +250,7 @@ export default function PlaygroundPage() {
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                         <circle cx="12" cy="12" r="3"></circle>
                       </svg>
-                      <span style={{ marginLeft: "6px", fontSize: "0.85rem" }}>
-                        {showKey ? "Hide" : "Show"}
-                      </span>
+                      <span>{showKey ? "Hide" : "Show"}</span>
                     </button>
 
                     <button
@@ -307,7 +272,7 @@ export default function PlaygroundPage() {
                         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                       </svg>
-                      <span style={{ marginLeft: "6px", fontSize: "0.85rem" }}>Paste</span>
+                      <span>Paste</span>
                     </button>
 
                     <button
@@ -329,58 +294,40 @@ export default function PlaygroundPage() {
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                       </svg>
-                      <span style={{ marginLeft: "6px", fontSize: "0.85rem" }}>Clear</span>
+                      <span>Clear</span>
                     </button>
                   </div>
                 </div>
 
-                <div
-                  className="top-bar"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    margin: 0,
-                    padding: 0,
-                    flexShrink: 0,
-                  }}
-                >
-                  <div className="top-actions" style={{ display: "flex", alignItems: "center" }}>
-                    <button
-                      id="btn-run-api"
-                      className="btn btn-primary btn-run"
-                      disabled={!canRun}
-                      onClick={handleRunApi}
-                    >
-                      <span className="run-icon" style={{ display: "flex", alignItems: "center" }}>
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                      </span>
-                      <span className="btn-text">
-                        {isRunning ? "Running..." : "Run request"}
-                      </span>
-                      {isRunning && <span className="loader"></span>}
-                    </button>
-                  </div>
+                <div className="playground-run-wrapper">
+                  <button
+                    id="btn-run-api"
+                    className="btn btn-primary btn-run"
+                    disabled={!canRun}
+                    onClick={handleRunApi}
+                  >
+                    <span className="run-icon">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                      </svg>
+                    </span>
+                    <span className="btn-text">
+                      {isRunning ? "Running..." : "Run request"}
+                    </span>
+                    {isRunning && <span className="loader"></span>}
+                  </button>
                 </div>
               </div>
-              <div
-                className="form-hint"
-                style={{
-                  marginTop: "8px",
-                  color: "var(--text-secondary)",
-                  fontSize: "0.8rem",
-                }}
-              >
+              <div className="form-hint key-hint">
                 Kept in local storage / memory to authorize your requests.
               </div>
             </div>
@@ -389,10 +336,10 @@ export default function PlaygroundPage() {
             <div className="playground-split-layout">
               {/* Configuration Panel (Left) */}
               <div className="playground-config">
-                <div className="form-group" style={{ marginBottom: "var(--space-md)" }}>
+                <div className="form-group service-group">
                   <div className="service-selector-row">
                     <span className="method-badge">POST</span>
-                    <div className="select-wrapper" style={{ flex: 1 }}>
+                    <div className="select-wrapper">
                       <select
                         id="service-selector"
                         className="form-input custom-select"
@@ -421,7 +368,7 @@ export default function PlaygroundPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="service-subtitle" id="endpoint-url" style={{ textTransform: "none" }}>
+                  <div className="service-subtitle" id="endpoint-url">
                     {origin}/run
                   </div>
                   <div id="service-description" className="service-desc-text">
@@ -429,18 +376,10 @@ export default function PlaygroundPage() {
                   </div>
                 </div>
 
-                <div
-                  className="form-group"
-                  style={{ flex: 1, display: "flex", flexDirection: "column" }}
-                >
+                <div className="form-group input-data-group">
                   <label
                     htmlFor="input-data"
-                    className="form-label text-uppercase"
-                    style={{
-                      letterSpacing: "0.05em",
-                      fontSize: "0.75rem",
-                      color: "var(--text-secondary)",
-                    }}
+                    className="form-label text-uppercase input-label"
                   >
                     Input Data
                   </label>
@@ -448,29 +387,40 @@ export default function PlaygroundPage() {
                     id="input-data"
                     className="form-input code-input custom-textarea"
                     placeholder="Enter input data here..."
-                    style={{ flex: 1, minHeight: "180px", resize: "none" }}
                     value={inputData}
                     onChange={(e) => setInputData(e.target.value)}
                   ></textarea>
-                  <div
-                    className="form-hint"
-                    style={{
-                      marginTop: "0.5rem",
-                      color: "var(--text-secondary)",
-                      fontSize: "0.8rem",
-                    }}
-                  >
+                  <div className="form-hint input-hint">
                     Enter the required input string or prompt for the selected service.
                   </div>
                 </div>
 
-                <div className="playground-actions hidden">
-                  <div className="price-estimate">
-                    <span className="price-label">Cost:</span>
-                    <span id="service-price" className="price-value">
-                      ${currentService?.price_usdc || "0.00"} USDC
+                {/* Mobile-only secondary Run button */}
+                <div className="playground-mobile-run-row">
+                  <button
+                    className="btn btn-primary btn-run btn-run-mobile"
+                    disabled={!canRun}
+                    onClick={handleRunApi}
+                  >
+                    <span className="run-icon">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                      </svg>
                     </span>
-                  </div>
+                    <span className="btn-text">
+                      {isRunning ? "Running..." : "Run request"}
+                    </span>
+                    {isRunning && <span className="loader"></span>}
+                  </button>
                 </div>
               </div>
 
@@ -478,16 +428,7 @@ export default function PlaygroundPage() {
               <div className="playground-output">
                 <div className="playground-output-header">
                   <h3 className="playground-panel-title">
-                    <span
-                      style={{
-                        color: "var(--text-secondary)",
-                        marginRight: "6px",
-                        fontFamily: "monospace",
-                      }}
-                    >
-                      &#123;&#125;
-                    </span>{" "}
-                    JSON response
+                    <span className="json-icon">&#123;&#125;</span> JSON response
                   </h3>
                   <div className="output-actions">
                     {responseStatus !== null && (
@@ -511,15 +452,9 @@ export default function PlaygroundPage() {
                     {responseData !== null && (
                       <button
                         id="btn-copy-response"
-                        className="btn btn-ghost btn-xs btn-icon"
+                        className="btn btn-ghost btn-xs btn-icon btn-copy-res"
                         title="Copy response"
                         onClick={handleCopyResponse}
-                        style={{
-                          gap: "6px",
-                          display: "flex",
-                          alignItems: "center",
-                          color: "var(--text-secondary)",
-                        }}
                       >
                         <svg
                           width="14"
@@ -540,12 +475,12 @@ export default function PlaygroundPage() {
 
                 <div className="playground-output-content" id="output-content">
                   {responseData !== null ? (
-                    <pre style={{ margin: 0, whiteSpace: "pre-wrap", fontFamily: "inherit" }}>
+                    <pre className="output-pre">
                       {JSON.stringify(responseData, null, 2)}
                     </pre>
                   ) : (
                     <div className="output-placeholder">
-                      <p style={{ color: "var(--text-secondary)" }}>
+                      <p className="placeholder-text">
                         The live response will appear here after you explicitly run the request.
                       </p>
                     </div>
@@ -565,7 +500,7 @@ export default function PlaygroundPage() {
                           rel="noopener noreferrer"
                           className="tx-link"
                         >
-                          {truncateAddress(responseData.tx_hash, 16)}
+                          {truncateAddress(responseData.tx_hash, 12)}
                         </a>
                         <button
                           id="btn-copy-tx"

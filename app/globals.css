@@ -189,6 +189,20 @@ h4 {
   overflow: hidden;
 }
 
+.theme-toggle-fixed {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  z-index: 99;
+}
+
+@media (max-width: 768px) {
+  .theme-toggle-fixed {
+    top: 72px;
+    right: 12px;
+  }
+}
+
 .section {
   padding: var(--space-4xl) var(--space-xl);
   max-width: var(--max-width);

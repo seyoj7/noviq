@@ -384,6 +384,10 @@
 
 /* ── Responsive Docs ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
+  .docs-nav-back-link {
+    display: none !important;
+  }
+
   .docs-mobile-menu-btn {
     display: block;
   }

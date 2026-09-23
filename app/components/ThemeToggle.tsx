@@ -40,17 +40,13 @@ export function ThemeToggle({
   };
 
   const defaultStyle: React.CSSProperties = {
-    position: "fixed",
-    top: "80px",
-    right: "24px",
-    zIndex: 99,
     ...style,
   };
 
   return (
     <button
       id="theme-toggle"
-      className={className || "btn btn-ghost btn-sm btn-icon"}
+      className={className || "btn btn-ghost btn-sm btn-icon theme-toggle-fixed"}
       title="Toggle theme"
       aria-label="Toggle dark mode"
       style={defaultStyle}
