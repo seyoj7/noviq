@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently -n \"next,api\" -c \"cyan,magenta\" \"next dev\" \"python -m uvicorn backend.main:app --port 8000 --reload\"",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "next dev",
-    "dev:backend": "python -m uvicorn backend.main:app --port 8000 --reload",
+    "dev:backend": "cd backend && python main.py",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

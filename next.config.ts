@@ -1,12 +1,5 @@
 import type { NextConfig } from "next";
 
-const isDev = process.env.NODE_ENV === "development";
-
-// In local development, proxy to local FastAPI server on port 8000.
-// In Vercel / production, route to the Vercel Python serverless function under /api.
-const BACKEND_DESTINATION =
-  process.env.BACKEND_URL || (isDev ? "http://127.0.0.1:8000" : "/api");
-
 // Backend API routes to proxy
 const BACKEND_ROUTES = [
   "/health",
@@ -18,47 +11,54 @@ const BACKEND_ROUTES = [
   "/wallet",
   "/wallet/:path*",
   "/api-keys/:path*",
+  "/docs",
+  "/redoc",
+  "/openapi.json",
 ];
-
-function getDestination(route: string): string {
-  return `${BACKEND_DESTINATION}${route}`;
-}
 
 const nextConfig: NextConfig = {
   async rewrites() {
-    return {
-      // Prioritize API requests for /api-keys before Next.js resolves the /api-keys page
-      beforeFiles: [
+    if (process.env.VERCEL === "1") {
+      return [
         {
           source: "/api-keys",
           has: [{ type: "header", key: "content-type" }],
-          destination: getDestination("/api-keys"),
+          destination: "/api/api-keys",
         },
         {
           source: "/api-keys",
           has: [{ type: "header", key: "accept", value: ".*application/json.*" }],
-          destination: getDestination("/api-keys"),
-        },
-      ],
-      afterFiles: [
-        {
-          source: "/documentation.html",
-          destination: "/docs",
+          destination: "/api/api-keys",
         },
         ...BACKEND_ROUTES.map((route) => ({
           source: route,
-          destination: getDestination(route),
+          destination: `/api${route}`,
         })),
-        ...(isDev
-          ? [
-              {
-                source: "/api/:path*",
-                destination: `${BACKEND_DESTINATION}/api/:path*`,
-              },
-            ]
-          : []),
-      ],
-    };
+      ];
+    }
+
+    const localBackend = process.env.BACKEND_URL || "http://127.0.0.1:8000";
+
+    return [
+      {
+        source: "/api-keys",
+        has: [{ type: "header", key: "content-type" }],
+        destination: `${localBackend}/api-keys`,
+      },
+      {
+        source: "/api-keys",
+        has: [{ type: "header", key: "accept", value: ".*application/json.*" }],
+        destination: `${localBackend}/api-keys`,
+      },
+      ...BACKEND_ROUTES.map((route) => ({
+        source: route,
+        destination: `${localBackend}${route}`,
+      })),
+      {
+        source: "/api/:path*",
+        destination: `${localBackend}/api/:path*`,
+      },
+    ];
   },
 };
 
