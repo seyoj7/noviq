@@ -674,43 +674,6 @@ Noviq is designed to deploy seamlessly to **Vercel**:
 
 ---
 
-## Frequently Asked Questions
-
-<details>
-<summary><strong>Do I need to pay gas fees to make API calls?</strong></summary>
-<br/>
-No. Noviq utilizes Circle Programmable Wallets. Transfers are executed directly via Circle developer-controlled transactions, so users never pay native gas fees on Arc Testnet.
-</details>
-
-<details>
-<summary><strong>What blockchain network does Noviq use?</strong></summary>
-<br/>
-Arc Testnet (Chain ID <code>201980</code>). All micropayments settle using testnet USDC, meaning no real capital is required during development and beta testing.
-</details>
-
-<details>
-<summary><strong>Where can I obtain Arc Testnet USDC?</strong></summary>
-<br/>
-Visit the <a href="https://faucet.circle.com/">Circle Faucet</a>, select <strong>Arc Testnet</strong>, and input your wallet address to receive testnet USDC.
-</details>
-
-<details>
-<summary><strong>How do I add a new AI service?</strong></summary>
-<br/>
-In <a href="backend/services.py"><code>backend/services.py</code></a>:
-1. Define an <code>async</code> function that accepts an input string and returns a result string.
-2. Register your function in <code>SERVICE_REGISTRY</code> with an ID, display name, description, and price in USDC.
-The service will immediately become available in <code>GET /services</code>, <code>POST /run</code>, and the web playground.
-</details>
-
-<details>
-<summary><strong>Can I integrate Noviq into automated bots and agents?</strong></summary>
-<br/>
-Yes. Once you generate an API key by signing the challenge once in the dashboard, your backend bots, agent workflows, or scripts can use the API key in standard HTTP headers without requiring any browser or wallet prompts.
-</details>
-
----
-
 ## License
 
 This project is currently unlicensed. Contact the maintainers for licensing and usage terms.
